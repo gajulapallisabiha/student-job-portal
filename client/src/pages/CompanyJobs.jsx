@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -11,22 +12,16 @@ function CompanyJobs() {
   }, []);
 
   const loadJobs = async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setMessage("Please login as a company first.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      /*
-       * We use the main jobs endpoint here.
-       * The backend can return the jobs and we filter
-       * them on the frontend using the logged-in company.
-       */
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setMessage("Please login as a company first.");
+        return;
+      }
+
       const response = await fetch(
-        "http://localhost:5000/api/jobs",
+        "http://localhost:5000/api/jobs/my-jobs",
         {
           method: "GET",
           headers: {
@@ -37,74 +32,52 @@ function CompanyJobs() {
 
       const data = await response.json();
 
-      console.log("All jobs response:", data);
+      console.log("MY COMPANY JOBS RESPONSE:", data);
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to fetch jobs"
-        );
+        throw new Error(data.message || "Failed to fetch jobs");
       }
 
-      let allJobs = [];
+      setJobs(data.jobs || []);
+    } catch (error) {
+      console.error("COMPANY JOBS ERROR:", error);
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (Array.isArray(data)) {
-        allJobs = data;
-      } else if (Array.isArray(data.jobs)) {
-        allJobs = data.jobs;
-      }
+  const handleDelete = async (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) {
+      return;
+    }
 
-      /*
-       * Get logged-in company information
-       */
-      const savedUser =
-        localStorage.getItem("user");
+    try {
+      const token = localStorage.getItem("token");
 
-      let user = null;
-
-      if (savedUser) {
-        user = JSON.parse(savedUser);
-      }
-
-      /*
-       * Filter jobs belonging to this company.
-       *
-       * Different backends may store the company as:
-       * job.company
-       * job.company._id
-       * job.companyId
-       */
-      const companyId =
-        user?._id || user?.id;
-
-      const companyJobs = allJobs.filter(
-        (job) => {
-          const jobCompany =
-            job.company?._id ||
-            job.company ||
-            job.companyId;
-
-          return (
-            String(jobCompany) ===
-            String(companyId)
-          );
+      const response = await fetch(
+        `http://localhost:5000/api/jobs/${jobId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      setJobs(companyJobs);
-      setLoading(false);
+      const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete job");
+      }
+
+      setJobs((previousJobs) =>
+        previousJobs.filter((job) => job._id !== jobId)
+      );
+
+      alert("Job deleted successfully!");
     } catch (error) {
-      console.error(
-        "COMPANY JOBS ERROR:",
-        error
-      );
-
-      setMessage(
-        error.message ||
-          "Failed to fetch jobs"
-      );
-
-      setLoading(false);
+      alert(error.message);
     }
   };
 
@@ -119,46 +92,32 @@ function CompanyJobs() {
 
   return (
     <div style={styles.container}>
-
       <h1>My Posted Jobs</h1>
 
       <Link to="/company-dashboard">
-        <button>
-          Back to Dashboard
-        </button>
+        <button style={styles.button}>Back to Dashboard</button>
       </Link>
 
-      <br />
-      <br />
+      <Link to="/post-job">
+        <button style={styles.button}>Post New Job</button>
+      </Link>
 
-      {message && (
-        <div style={styles.error}>
-          {message}
+      {message && <p style={styles.error}>{message}</p>}
+
+      {!message && jobs.length === 0 && (
+        <div>
+          <p>You have not posted any jobs yet.</p>
+          <Link to="/post-job">
+            <button style={styles.button}>Post Your First Job</button>
+          </Link>
         </div>
       )}
 
-      {!message &&
-        jobs.length === 0 && (
-          <div>
-            <p>
-              You have not posted any jobs yet.
-            </p>
-
-            <Link to="/post-job">
-              <button>
-                Post Your First Job
-              </button>
-            </Link>
-          </div>
-        )}
-
       {jobs.map((job) => (
-        <div
-          key={job._id}
-          style={styles.card}
-        >
-
+        <div key={job._id} style={styles.card}>
           <h2>{job.title}</h2>
+
+          <p><strong>Company:</strong> {job.company}</p>
 
           <p>
             <strong>Description:</strong>
@@ -166,35 +125,37 @@ function CompanyJobs() {
             {job.description}
           </p>
 
-          <p>
-            <strong>Location:</strong>{" "}
-            {job.location}
-          </p>
+          <p><strong>Location:</strong> {job.location}</p>
 
           <p>
             <strong>Salary / Stipend:</strong>{" "}
-            {job.salary ||
-              "Not specified"}
+            {job.salary || "Not specified"}
           </p>
 
           <p>
             <strong>Job Type:</strong>{" "}
-            {job.type ||
-              job.jobType ||
-              "Not specified"}
+            {job.type || "Not specified"}
           </p>
 
-          <Link
-            to={`/company-jobs/${job._id}/applications`}
-          >
-            <button>
-              View Applicants
-            </button>
+          <p>
+            <strong>Application Deadline:</strong>{" "}
+            {job.deadline
+              ? new Date(job.deadline).toLocaleDateString()
+              : "Not specified"}
+          </p>
+
+          <Link to={`/company-jobs/${job._id}/applications`}>
+            <button style={styles.button}>View Applicants</button>
           </Link>
 
+          <button
+            style={styles.deleteButton}
+            onClick={() => handleDelete(job._id)}
+          >
+            Delete Job
+          </button>
         </div>
       ))}
-
     </div>
   );
 }
@@ -203,7 +164,6 @@ const styles = {
   container: {
     padding: "40px",
   },
-
   card: {
     border: "1px solid #ccc",
     padding: "20px",
@@ -211,13 +171,24 @@ const styles = {
     borderRadius: "10px",
     maxWidth: "700px",
   },
-
+  button: {
+    padding: "10px 16px",
+    margin: "10px 10px 10px 0",
+    cursor: "pointer",
+  },
+  deleteButton: {
+    padding: "10px 16px",
+    margin: "10px",
+    backgroundColor: "#dc3545",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
   error: {
     color: "red",
-    fontWeight: "bold",
     marginTop: "20px",
   },
 };
 
 export default CompanyJobs;
-

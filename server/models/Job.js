@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema(
@@ -12,6 +13,13 @@ const jobSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+
+    // Links each job to the company account that posted it
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
     },
 
     description: {
@@ -57,10 +65,7 @@ const jobSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Job", jobSchema);
-

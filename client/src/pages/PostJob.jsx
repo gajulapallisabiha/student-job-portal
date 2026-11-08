@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
@@ -20,10 +21,12 @@ function PostJob() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -32,87 +35,66 @@ function PostJob() {
     setError("");
     setSuccess("");
 
-    // Required fields
-    if (
-      !formData.title.trim() ||
-      !formData.company.trim() ||
-      !formData.description.trim() ||
-      !formData.location.trim() ||
-      !formData.type ||
-      !formData.deadline
-    ) {
-      setError(
-        "Please provide all required fields."
-      );
+    // Check required fields
+    const requiredFields = {
+      "Job Title": formData.title,
+      "Company": formData.company,
+      "Description": formData.description,
+      "Location": formData.location,
+      "Job Type": formData.type,
+      "Application Deadline": formData.deadline,
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([name, value]) => !value || !value.trim())
+      .map(([name]) => name);
+
+    console.log("Current form data:", formData);
+    console.log("Missing fields:", missingFields);
+
+    if (missingFields.length > 0) {
+      setError(`Please fill in: ${missingFields.join(", ")}`);
       return;
     }
 
-    const token =
-      localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
     if (!token) {
-      setError(
-        "You are not logged in. Please login as a company."
-      );
+      setError("You are not logged in. Please login as a company.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/jobs`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            title: formData.title.trim(),
-
-            company:
-              formData.company.trim(),
-
-            description:
-              formData.description.trim(),
-
-            location:
-              formData.location.trim(),
-
-            salary:
-              formData.salary.trim() ||
-              "Not specified",
-
-            type: formData.type,
-
-            deadline: formData.deadline,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/jobs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          company: formData.company.trim(),
+          description: formData.description.trim(),
+          location: formData.location.trim(),
+          salary: formData.salary.trim() || "Not specified",
+          type: formData.type,
+          deadline: formData.deadline,
+        }),
+      });
 
       const data = await response.json();
 
-      console.log(
-        "POST JOB RESPONSE:",
-        data
-      );
+      console.log("POST JOB RESPONSE:", data);
 
       if (!response.ok) {
-        setError(
-          data.message ||
-            "Failed to post job."
-        );
+        setError(data.message || "Failed to post job.");
         return;
       }
 
-      setSuccess(
-        "Job posted successfully!"
-      );
+      setSuccess("Job posted successfully!");
 
-      // Clear form
       setFormData({
         title: "",
         company: "",
@@ -123,16 +105,12 @@ function PostJob() {
         deadline: "",
       });
 
-      // Go to company jobs after a short delay
       setTimeout(() => {
         navigate("/company-jobs");
       }, 1200);
 
-    } catch (error) {
-      console.error(
-        "POST JOB ERROR:",
-        error
-      );
+    } catch (err) {
+      console.error("POST JOB ERROR:", err);
 
       setError(
         "Unable to connect to server. Please make sure the backend is running."
@@ -144,9 +122,7 @@ function PostJob() {
 
   return (
     <div className="post-job-page">
-
       <div className="post-job-card">
-
         <h1>Post a Job</h1>
 
         {error && (
@@ -162,90 +138,55 @@ function PostJob() {
         )}
 
         <form onSubmit={handleSubmit}>
-
-          {/* JOB TITLE */}
-
           <div className="form-group">
-
-            <label>
-              Job Title *
-            </label>
-
+            <label>Job Title *</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
               placeholder="Example: React Developer Intern"
+              required
             />
-
           </div>
 
-
-          {/* COMPANY */}
-
           <div className="form-group">
-
-            <label>
-              Company *
-            </label>
-
+            <label>Company *</label>
             <input
               type="text"
               name="company"
               value={formData.company}
               onChange={handleChange}
               placeholder="Enter company name"
+              required
             />
-
           </div>
 
-
-          {/* DESCRIPTION */}
-
           <div className="form-group">
-
-            <label>
-              Description *
-            </label>
-
+            <label>Description *</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Describe the job, responsibilities and requirements"
+              required
             />
-
           </div>
 
-
-          {/* LOCATION */}
-
           <div className="form-group">
-
-            <label>
-              Location *
-            </label>
-
+            <label>Location *</label>
             <input
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
               placeholder="Example: Bengaluru / Remote"
+              required
             />
-
           </div>
 
-
-          {/* SALARY */}
-
           <div className="form-group">
-
-            <label>
-              Salary / Stipend
-            </label>
-
+            <label>Salary / Stipend</label>
             <input
               type="text"
               name="salary"
@@ -253,58 +194,33 @@ function PostJob() {
               onChange={handleChange}
               placeholder="Example: ₹20,000/month"
             />
-
           </div>
 
-
-          {/* JOB TYPE */}
-
           <div className="form-group">
-
-            <label>
-              Job Type *
-            </label>
-
+            <label>Job Type *</label>
             <select
               name="type"
               value={formData.type}
               onChange={handleChange}
+              required
             >
-              <option value="Internship">
-                Internship
-              </option>
-
-              <option value="Full-time">
-                Full-time
-              </option>
-
-              <option value="Part-time">
-                Part-time
-              </option>
+              <option value="Internship">Internship</option>
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
             </select>
-
           </div>
 
-
-          {/* DEADLINE */}
-
           <div className="form-group">
-
-            <label>
-              Application Deadline *
-            </label>
-
+            <label>Application Deadline *</label>
             <input
               type="date"
               name="deadline"
               value={formData.deadline}
               onChange={handleChange}
+              min={new Date().toISOString().split("T")[0]}
+              required
             />
-
           </div>
-
-
-          {/* BUTTONS */}
 
           <div
             style={{
@@ -313,15 +229,12 @@ function PostJob() {
               marginTop: "25px",
             }}
           >
-
             <button
               type="submit"
               className="primary-button"
               disabled={loading}
             >
-              {loading
-                ? "Posting..."
-                : "Post Job"}
+              {loading ? "Posting..." : "Post Job"}
             </button>
 
             <Link
@@ -335,16 +248,11 @@ function PostJob() {
             >
               Cancel
             </Link>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
   );
 }
 
 export default PostJob;
-
