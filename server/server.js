@@ -1,48 +1,42 @@
 
 const dns = require("node:dns");
 
-// ==========================================
-// GOOGLE DNS
-// ==========================================
-
+// Google DNS
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
-// ==========================================
-// IMPORT PACKAGES
-// ==========================================
-
+// Import packages
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-// ==========================================
-// IMPORT ROUTES
-// ==========================================
-
+// Import routes
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/job");
 const applicationRoutes = require("./routes/application");
 const profileRoutes = require("./routes/profileRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
 
-// ==========================================
-// CREATE EXPRESS APP
-// ==========================================
-
+// Create Express app
 const app = express();
 
-// ==========================================
-// MIDDLEWARE
-// ==========================================
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -52,10 +46,7 @@ app.use(express.json());
 // Serve uploaded resumes
 app.use("/uploads", express.static("uploads"));
 
-// ==========================================
-// TEST ROUTE
-// ==========================================
-
+// Test route
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -63,29 +54,14 @@ app.get("/", (req, res) => {
   });
 });
 
-// ==========================================
-// API ROUTES
-// ==========================================
-
-// Authentication
+// API routes
 app.use("/api/auth", authRoutes);
-
-// Jobs
 app.use("/api/jobs", jobRoutes);
-
-// Applications
 app.use("/api/applications", applicationRoutes);
-
-// Student Profile
 app.use("/api/profile", profileRoutes);
-
-// Resume Upload - NEW FEATURE
 app.use("/api/resume", resumeRoutes);
 
-// ==========================================
-// 404 ROUTE
-// ==========================================
-
+// 404 route
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -94,42 +70,35 @@ app.use((req, res) => {
   });
 });
 
-// ==========================================
-// ERROR HANDLER
-// ==========================================
-
+// Error handler
 app.use((err, req, res, next) => {
   console.error("Server Error:", err.message);
 
-  res.status(err instanceof require("multer").MulterError ? 400 : 500).json({
+  res.status(
+    err instanceof require("multer").MulterError ? 400 : 500
+  ).json({
     success: false,
     message: err.message || "Something went wrong",
   });
 });
 
-// ==========================================
-// MONGODB CONNECTION
-// ==========================================
-
+// MongoDB connection
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-  console.error("ERROR: MONGO_URI is missing from .env file");
+  console.error("ERROR: MONGO_URI is missing from environment variables");
   process.exit(1);
 }
 
-// ==========================================
-// CONNECT TO MONGODB
-// ==========================================
-
+// Connect to MongoDB
 mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("MongoDB connected successfully");
 
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {

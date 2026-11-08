@@ -1,5 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_URL, { API_BASE_URL } from "../api";
 import "./profile.css";
 
 function Profile() {
@@ -32,7 +34,7 @@ function Profile() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/profile", {
+        const response = await fetch(`${API_URL}/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -77,7 +79,7 @@ function Profile() {
           .filter(Boolean),
       };
 
-      const response = await fetch("http://localhost:5000/api/profile", {
+      const response = await fetch(`${API_URL}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,16 +128,13 @@ function Profile() {
     try {
       setUploading(true);
 
-      const response = await fetch(
-        "http://localhost:5000/api/resume/upload",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch(`${API_URL}/resume/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       const data = await response.json();
 
@@ -298,7 +297,7 @@ function Profile() {
             <div className="resume-link">
               <p>Your resume is uploaded.</p>
               <a
-                href={`http://localhost:5000${profile.resumeUrl}`}
+                href={`${API_BASE_URL}${profile.resumeUrl}`}
                 target="_blank"
                 rel="noreferrer"
               >

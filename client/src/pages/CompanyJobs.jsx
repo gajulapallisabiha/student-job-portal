@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import API_URL from "../api";
 
 function CompanyJobs() {
   const [jobs, setJobs] = useState([]);
@@ -21,7 +21,7 @@ function CompanyJobs() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/jobs/my-jobs",
+        `${API_URL}/jobs/my-jobs`,
         {
           method: "GET",
           headers: {
@@ -56,7 +56,7 @@ function CompanyJobs() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/jobs/${jobId}`,
+        `${API_URL}/jobs/${jobId}`,
         {
           method: "DELETE",
           headers: {

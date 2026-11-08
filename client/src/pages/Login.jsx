@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../api";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,6 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setError("");
 
     if (!email.trim() || !password) {
@@ -25,7 +25,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/login",
+        `${API_URL}/auth/login`,
         {
           method: "POST",
           headers: {
@@ -44,25 +44,17 @@ function Login() {
       console.log("LOGIN RESPONSE:", data);
 
       if (!response.ok) {
-        setError(
-          data.message || "Invalid email or password"
-        );
+        setError(data.message || "Invalid email or password");
         setLoading(false);
         return;
       }
 
       if (data.token) {
-        localStorage.setItem(
-          "token",
-          data.token
-        );
+        localStorage.setItem("token", data.token);
       }
 
       if (data.user) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data.user)
-        );
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
 
       const loggedUser = data.user;
@@ -75,13 +67,9 @@ function Login() {
       } else {
         navigate("/jobs");
       }
-
     } catch (error) {
       console.error("LOGIN ERROR:", error);
-
-      setError(
-        "Unable to connect to server."
-      );
+      setError("Unable to connect to server.");
     }
 
     setLoading(false);
@@ -89,55 +77,37 @@ function Login() {
 
   return (
     <div style={styles.page}>
-
       <div style={styles.card}>
-
         <h1>Student Job Portal</h1>
-
         <h2>Login</h2>
 
         <form onSubmit={handleLogin}>
-
           <label>Email</label>
-
           <input
             type="email"
             value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             style={styles.input}
           />
 
           <label>Password</label>
-
           <input
             type="password"
             value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             style={styles.input}
           />
 
           <label>Login As</label>
-
           <select
             value={role}
-            onChange={(e) =>
-              setRole(e.target.value)
-            }
+            onChange={(e) => setRole(e.target.value)}
             style={styles.input}
           >
-            <option value="STUDENT">
-              Student
-            </option>
-
-            <option value="COMPANY">
-              Company
-            </option>
+            <option value="STUDENT">Student</option>
+            <option value="COMPANY">Company</option>
           </select>
 
           <button
@@ -145,28 +115,19 @@ function Login() {
             disabled={loading}
             style={styles.button}
           >
-            {loading
-              ? "Logging in..."
-              : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
-
         </form>
 
         {error && (
-          <p style={styles.error}>
-            {error}
-          </p>
+          <p style={styles.error}>{error}</p>
         )}
 
         <p>
           Don't have an account?{" "}
-          <Link to="/register">
-            Register
-          </Link>
+          <Link to="/register">Register</Link>
         </p>
-
       </div>
-
     </div>
   );
 }
@@ -185,8 +146,7 @@ const styles = {
     padding: "35px",
     background: "white",
     borderRadius: "12px",
-    boxShadow:
-      "0 4px 15px rgba(0,0,0,0.1)",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
   },
 
   input: {
@@ -218,4 +178,3 @@ const styles = {
 };
 
 export default Login;
-

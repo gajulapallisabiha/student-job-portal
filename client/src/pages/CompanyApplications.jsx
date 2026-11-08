@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import API_URL, { API_BASE_URL } from "../api";
 
 const statusOptions = [
   "Under Review",
@@ -29,7 +29,7 @@ function CompanyApplications() {
         }
 
         const response = await fetch(
-          `http://localhost:5000/api/applications/job/${jobId}`,
+          `${API_URL}/applications/job/${jobId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -65,7 +65,7 @@ function CompanyApplications() {
       setUpdatingId(applicationId);
 
       const response = await fetch(
-        `http://localhost:5000/api/applications/${applicationId}/status`,
+        `${API_URL}/applications/${applicationId}/status`,
         {
           method: "PUT",
           headers: {
@@ -148,9 +148,8 @@ function CompanyApplications() {
           const status = application.status || "Applied";
           const history = application.statusHistory || [];
 
-          // Resume URL
           const resumeUrl = application.resumeUrl
-            ? `http://localhost:5000${application.resumeUrl}`
+            ? `${API_BASE_URL}${application.resumeUrl}`
             : null;
 
           return (
@@ -164,7 +163,6 @@ function CompanyApplications() {
                 {application.student?.email || "Not available"}
               </p>
 
-              {/* Resume Section */}
               <h3>Student Resume</h3>
 
               {resumeUrl ? (

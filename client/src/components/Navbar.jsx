@@ -1,6 +1,6 @@
-
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../api";
 import "./Navbar.css";
 
 function Navbar() {
@@ -29,7 +29,7 @@ function Navbar() {
     const fetchNotifications = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/applications/my-applications",
+          `${API_URL}/applications/my-applications`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

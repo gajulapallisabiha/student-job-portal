@@ -1,6 +1,6 @@
-
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import API_URL from "../api";
 
 function Apply() {
   const navigate = useNavigate();
@@ -82,7 +82,7 @@ function Apply() {
       formData.append("resume", resume);
 
       const response = await fetch(
-        "http://localhost:5000/api/applications",
+        `${API_URL}/applications`,
         {
           method: "POST",
           headers: {

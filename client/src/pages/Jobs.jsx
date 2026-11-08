@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import API_URL from "../api";
 
 function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -10,7 +10,7 @@ function Jobs() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/jobs")
+    fetch(`${API_URL}/jobs`)
       .then(async (response) => {
         const data = await response.json();
 

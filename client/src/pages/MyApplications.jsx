@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import API_URL from "../api";
 
 function MyApplications() {
   const [applications, setApplications] = useState([]);
@@ -18,7 +18,7 @@ function MyApplications() {
         }
 
         const response = await fetch(
-          "http://localhost:5000/api/applications/my-applications",
+          `${API_URL}/applications/my-applications`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -107,7 +107,6 @@ function MyApplications() {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-
         <div style={styles.header}>
           <h1>My Applications</h1>
 
@@ -152,9 +151,7 @@ function MyApplications() {
                     <div>
                       <strong
                         style={{
-                          color: getStatusColor(
-                            notification.status
-                          ),
+                          color: getStatusColor(notification.status),
                         }}
                       >
                         {notification.status === "Selected"
@@ -260,18 +257,14 @@ function MyApplications() {
                           <div
                             style={{
                               ...styles.timelineDot,
-                              background: getStatusColor(
-                                item.status
-                              ),
+                              background: getStatusColor(item.status),
                             }}
                           />
 
                           <div>
                             <strong
                               style={{
-                                color: getStatusColor(
-                                  item.status
-                                ),
+                                color: getStatusColor(item.status),
                               }}
                             >
                               {item.status}
@@ -294,8 +287,7 @@ function MyApplications() {
                     </p>
 
                     <p style={styles.coverLetter}>
-                      {application.coverLetter ||
-                        "Not provided"}
+                      {application.coverLetter || "Not provided"}
                     </p>
 
                     <p style={styles.date}>

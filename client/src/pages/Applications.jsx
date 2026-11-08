@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API_URL from "../api";
 
 function Applications() {
   const [applications, setApplications] = useState([]);
@@ -19,7 +21,7 @@ function Applications() {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/applications/my",
+          `${API_URL}/applications/my`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -35,7 +37,7 @@ function Applications() {
           );
         }
 
-        setApplications(data.applications);
+        setApplications(data.applications || []);
       } catch (error) {
         console.error(error);
         setError(error.message);
@@ -140,9 +142,7 @@ function Applications() {
                 <strong>Cover Letter:</strong>
               </p>
 
-              <p>
-                {application.coverLetter}
-              </p>
+              <p>{application.coverLetter}</p>
             </div>
           ))}
         </div>
