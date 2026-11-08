@@ -35,18 +35,17 @@ function PostJob() {
     setError("");
     setSuccess("");
 
-    // Check required fields
     const requiredFields = {
       "Job Title": formData.title,
-      "Company": formData.company,
-      "Description": formData.description,
-      "Location": formData.location,
+      Company: formData.company,
+      Description: formData.description,
+      Location: formData.location,
       "Job Type": formData.type,
       "Application Deadline": formData.deadline,
     };
 
     const missingFields = Object.entries(requiredFields)
-      .filter(([name, value]) => !value || !value.trim())
+      .filter(([, value]) => !value || !value.trim())
       .map(([name]) => name);
 
     console.log("Current form data:", formData);
@@ -108,7 +107,6 @@ function PostJob() {
       setTimeout(() => {
         navigate("/company-jobs");
       }, 1200);
-
     } catch (err) {
       console.error("POST JOB ERROR:", err);
 
@@ -125,17 +123,9 @@ function PostJob() {
       <div className="post-job-card">
         <h1>Post a Job</h1>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
-        {success && (
-          <div className="success-message">
-            {success}
-          </div>
-        )}
+        {success && <div className="success-message">{success}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

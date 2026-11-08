@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API_URL from "../api";
@@ -7,28 +8,23 @@ function CompanyJobs() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    loadJobs();
-  }, []);
-
   const loadJobs = async () => {
     try {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        setMessage("Please login as a company first.");
-        return;
+        return {
+          jobs: [],
+          message: "Please login as a company first.",
+        };
       }
 
-      const response = await fetch(
-        `${API_URL}/jobs/my-jobs`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/jobs/my-jobs`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
 
@@ -38,14 +34,35 @@ function CompanyJobs() {
         throw new Error(data.message || "Failed to fetch jobs");
       }
 
-      setJobs(data.jobs || []);
+      return {
+        jobs: data.jobs || [],
+        message: "",
+      };
     } catch (error) {
       console.error("COMPANY JOBS ERROR:", error);
-      setMessage(error.message);
-    } finally {
-      setLoading(false);
+
+      return {
+        jobs: [],
+        message: error.message,
+      };
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadJobs().then((result) => {
+      if (isMounted) {
+        setJobs(result.jobs);
+        setMessage(result.message);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleDelete = async (jobId) => {
     if (!window.confirm("Are you sure you want to delete this job?")) {
@@ -55,15 +72,12 @@ function CompanyJobs() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        `${API_URL}/jobs/${jobId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API_URL}/jobs/${jobId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
 
@@ -117,7 +131,9 @@ function CompanyJobs() {
         <div key={job._id} style={styles.card}>
           <h2>{job.title}</h2>
 
-          <p><strong>Company:</strong> {job.company}</p>
+          <p>
+            <strong>Company:</strong> {job.company}
+          </p>
 
           <p>
             <strong>Description:</strong>
@@ -125,7 +141,9 @@ function CompanyJobs() {
             {job.description}
           </p>
 
-          <p><strong>Location:</strong> {job.location}</p>
+          <p>
+            <strong>Location:</strong> {job.location}
+          </p>
 
           <p>
             <strong>Salary / Stipend:</strong>{" "}
@@ -133,8 +151,7 @@ function CompanyJobs() {
           </p>
 
           <p>
-            <strong>Job Type:</strong>{" "}
-            {job.type || "Not specified"}
+            <strong>Job Type:</strong> {job.type || "Not specified"}
           </p>
 
           <p>
