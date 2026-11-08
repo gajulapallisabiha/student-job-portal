@@ -1,14 +1,11 @@
+
 const dns = require("node:dns");
 
 // ==========================================
 // GOOGLE DNS
 // ==========================================
 
-dns.setServers([
-  "8.8.8.8",
-  "8.8.4.4",
-]);
-
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 // ==========================================
 // IMPORT PACKAGES
@@ -19,7 +16,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-
 // ==========================================
 // IMPORT ROUTES
 // ==========================================
@@ -27,7 +23,8 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/job");
 const applicationRoutes = require("./routes/application");
-
+const profileRoutes = require("./routes/profileRoutes");
+const resumeRoutes = require("./routes/resumeRoutes");
 
 // ==========================================
 // CREATE EXPRESS APP
@@ -35,12 +32,10 @@ const applicationRoutes = require("./routes/application");
 
 const app = express();
 
-
 // ==========================================
 // MIDDLEWARE
 // ==========================================
 
-// Allow Vite frontend on 5173, 5174 or 5175
 app.use(
   cors({
     origin: [
@@ -52,9 +47,10 @@ app.use(
   })
 );
 
-// Read JSON request body
 app.use(express.json());
 
+// Serve uploaded resumes
+app.use("/uploads", express.static("uploads"));
 
 // ==========================================
 // TEST ROUTE
@@ -67,29 +63,24 @@ app.get("/", (req, res) => {
   });
 });
 
-
 // ==========================================
 // API ROUTES
 // ==========================================
 
 // Authentication
-app.use(
-  "/api/auth",
-  authRoutes
-);
+app.use("/api/auth", authRoutes);
 
 // Jobs
-app.use(
-  "/api/jobs",
-  jobRoutes
-);
+app.use("/api/jobs", jobRoutes);
 
 // Applications
-app.use(
-  "/api/applications",
-  applicationRoutes
-);
+app.use("/api/applications", applicationRoutes);
 
+// Student Profile
+app.use("/api/profile", profileRoutes);
+
+// Resume Upload - NEW FEATURE
+app.use("/api/resume", resumeRoutes);
 
 // ==========================================
 // 404 ROUTE
@@ -103,28 +94,30 @@ app.use((req, res) => {
   });
 });
 
+// ==========================================
+// ERROR HANDLER
+// ==========================================
+
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err.message);
+
+  res.status(err instanceof require("multer").MulterError ? 400 : 500).json({
+    success: false,
+    message: err.message || "Something went wrong",
+  });
+});
 
 // ==========================================
 // MONGODB CONNECTION
 // ==========================================
 
 const PORT = process.env.PORT || 5000;
-
 const MONGO_URI = process.env.MONGO_URI;
 
-
-// ==========================================
-// CHECK MONGODB URI
-// ==========================================
-
 if (!MONGO_URI) {
-  console.error(
-    "ERROR: MONGO_URI is missing from .env file"
-  );
-
+  console.error("ERROR: MONGO_URI is missing from .env file");
   process.exit(1);
 }
-
 
 // ==========================================
 // CONNECT TO MONGODB
@@ -133,26 +126,14 @@ if (!MONGO_URI) {
 mongoose
   .connect(MONGO_URI)
   .then(() => {
-    console.log(
-      "MongoDB connected successfully"
-    );
+    console.log("MongoDB connected successfully");
 
-    // Start server only after MongoDB connects
     app.listen(PORT, () => {
-      console.log(
-        `Server running on http://localhost:${PORT}`
-      );
+      console.log(`Server running on http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
-    console.error(
-      "MongoDB connection failed:"
-    );
-
-    console.error(
-      error.message
-    );
-
+    console.error("MongoDB connection failed:");
+    console.error(error.message);
     process.exit(1);
   });
-
