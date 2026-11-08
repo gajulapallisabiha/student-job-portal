@@ -7,48 +7,41 @@ const {
   updateApplicationStatus,
 } = require("../controllers/applicationController");
 
+const protect = require("../middleware/authMiddleware");
+const authorize = require("../middleware/roleMiddleware");
+const uploadResume = require("../middleware/applicationUpload");
+
 const router = express.Router();
 
-// ========================================
-// STUDENT - Apply for a job
-// POST /api/applications
-// ========================================
-
-router.post("/", applyForJob);
-
-
-// ========================================
-// STUDENT - View my applications
-// GET /api/applications/my-applications
-// ========================================
+// Student routes
+router.post(
+  "/",
+  protect,
+  authorize("STUDENT"),
+  uploadResume.single("resume"),
+  applyForJob
+);
 
 router.get(
   "/my-applications",
+  protect,
+  authorize("STUDENT"),
   getMyApplications
 );
 
-
-// ========================================
-// COMPANY - View applications for a job
-// GET /api/applications/job/:jobId
-// ========================================
-
+// Company routes
 router.get(
   "/job/:jobId",
+  protect,
+  authorize("COMPANY"),
   getApplicationsForJob
 );
 
-
-// ========================================
-// COMPANY - Accept / Reject application
-// PUT /api/applications/:id/status
-// ========================================
-
 router.put(
   "/:id/status",
+  protect,
+  authorize("COMPANY"),
   updateApplicationStatus
 );
 
-
 module.exports = router;
-
