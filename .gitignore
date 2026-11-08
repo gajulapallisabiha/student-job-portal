@@ -1,21 +1,29 @@
+# Dependencies
 node_modules/
-client/node_modules/
-server/node_modules/
+**/node_modules/
 
+# Environment variables and secrets
 .env
-server/.env
-client/.env
+.env.*
+!.env.example
 
+# Build files
 dist/
-client/dist/
+**/dist/
 build/
+coverage/
 
+# Logs
 *.log
 npm-debug.log*
 
+# Editors
 .vscode/
 .idea/
 
+# Operating system
 .DS_Store
 Thumbs.db
-server/uploads/*
+
+# Uploaded resumes and files
+server/uploads/
