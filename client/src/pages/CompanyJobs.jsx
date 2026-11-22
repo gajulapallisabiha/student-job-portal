@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API_URL from "../api";
+import "./CompanyJobs.css";
 
 function CompanyJobs() {
   const [jobs, setJobs] = useState([]);
@@ -97,115 +98,162 @@ function CompanyJobs() {
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <h1>My Posted Jobs</h1>
-        <p>Loading jobs...</p>
+      <div className="company-jobs-page">
+        <div className="jobs-loading">
+          <div className="jobs-spinner"></div>
+          <h2>Loading your jobs...</h2>
+          <p>Please wait while we fetch your posted jobs.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <h1>My Posted Jobs</h1>
+    <div className="company-jobs-page">
+      <div className="company-jobs-container">
 
-      <Link to="/company-dashboard">
-        <button style={styles.button}>Back to Dashboard</button>
-      </Link>
+        {/* HEADER */}
+        <div className="company-jobs-header">
+          <div>
+            <span className="jobs-eyebrow">RECRUITMENT MANAGEMENT</span>
+            <h1>My Posted Jobs</h1>
+            <p>
+              Manage your job postings and keep track of applicants.
+            </p>
+          </div>
 
-      <Link to="/post-job">
-        <button style={styles.button}>Post New Job</button>
-      </Link>
+          <div className="jobs-header-actions">
+            <Link to="/company-dashboard" className="jobs-back-btn">
+              Back to Dashboard
+            </Link>
 
-      {message && <p style={styles.error}>{message}</p>}
-
-      {!message && jobs.length === 0 && (
-        <div>
-          <p>You have not posted any jobs yet.</p>
-          <Link to="/post-job">
-            <button style={styles.button}>Post Your First Job</button>
-          </Link>
+            <Link to="/post-job" className="jobs-create-btn">
+              + Post New Job
+            </Link>
+          </div>
         </div>
-      )}
 
-      {jobs.map((job) => (
-        <div key={job._id} style={styles.card}>
-          <h2>{job.title}</h2>
-
-          <p>
-            <strong>Company:</strong> {job.company}
-          </p>
-
-          <p>
-            <strong>Description:</strong>
-            <br />
-            {job.description}
-          </p>
-
-          <p>
-            <strong>Location:</strong> {job.location}
-          </p>
-
-          <p>
-            <strong>Salary / Stipend:</strong>{" "}
-            {job.salary || "Not specified"}
-          </p>
-
-          <p>
-            <strong>Job Type:</strong> {job.type || "Not specified"}
-          </p>
-
-          <p>
-            <strong>Application Deadline:</strong>{" "}
-            {job.deadline
-              ? new Date(job.deadline).toLocaleDateString()
-              : "Not specified"}
-          </p>
-
-          <Link to={`/company-jobs/${job._id}/applications`}>
-            <button style={styles.button}>View Applicants</button>
-          </Link>
-
-          <button
-            style={styles.deleteButton}
-            onClick={() => handleDelete(job._id)}
-          >
-            Delete Job
-          </button>
+        {/* SUMMARY */}
+        <div className="jobs-summary-card">
+          <div className="jobs-summary-icon">J</div>
+          <div>
+            <span>Total Job Postings</span>
+            <h2>{jobs.length}</h2>
+          </div>
+          <div className="jobs-summary-note">
+            Your recruitment activity
+          </div>
         </div>
-      ))}
+
+        {/* ERROR */}
+        {message && (
+          <div className="jobs-error">
+            <strong>Unable to load jobs</strong>
+            <p>{message}</p>
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!message && jobs.length === 0 && (
+          <div className="jobs-empty-state">
+            <div className="jobs-empty-icon">+</div>
+            <h2>No Jobs Posted Yet</h2>
+            <p>
+              You haven't posted any job opportunities.
+              Start building your team by creating your first job posting.
+            </p>
+            <Link to="/post-job" className="jobs-create-btn">
+              Post Your First Job
+            </Link>
+          </div>
+        )}
+
+        {/* JOB LIST */}
+        {!message && jobs.length > 0 && (
+          <>
+            <div className="jobs-section-heading">
+              <div>
+                <h2>Your Job Listings</h2>
+                <p>All opportunities posted by your company</p>
+              </div>
+              <span className="jobs-count">
+                {jobs.length} {jobs.length === 1 ? "Job" : "Jobs"}
+              </span>
+            </div>
+
+            <div className="company-jobs-grid">
+              {jobs.map((job) => (
+                <div className="company-job-card" key={job._id}>
+
+                  <div className="job-card-top">
+                    <div className="job-card-icon">
+                      {job.company
+                        ? job.company.charAt(0).toUpperCase()
+                        : "J"}
+                    </div>
+
+                    <span className="job-active-badge">
+                      Posted
+                    </span>
+                  </div>
+
+                  <h3>{job.title}</h3>
+
+                  <p className="job-company-name">
+                    {job.company || "Company"}
+                  </p>
+
+                  <div className="job-tags">
+                    <span>{job.type || "Not specified"}</span>
+                    <span>{job.location || "Location not specified"}</span>
+                  </div>
+
+                  <div className="job-card-details">
+                    <div>
+                      <span>Salary / Stipend</span>
+                      <strong>{job.salary || "Not specified"}</strong>
+                    </div>
+
+                    <div>
+                      <span>Application Deadline</span>
+                      <strong>
+                        {job.deadline
+                          ? new Date(job.deadline).toLocaleDateString()
+                          : "Not specified"}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="job-description">
+                    <span>JOB DESCRIPTION</span>
+                    <p>{job.description || "No description provided."}</p>
+                  </div>
+
+                  <div className="job-card-actions">
+                    <Link
+                      to={`/company-jobs/${job._id}/applications`}
+                      className="job-applicants-btn"
+                    >
+                      View Applicants
+                    </Link>
+
+                    <button
+                      className="job-delete-btn"
+                      onClick={() => handleDelete(job._id)}
+                    >
+                      Delete Job
+                    </button>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+      </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    padding: "40px",
-  },
-  card: {
-    border: "1px solid #ccc",
-    padding: "20px",
-    marginTop: "20px",
-    borderRadius: "10px",
-    maxWidth: "700px",
-  },
-  button: {
-    padding: "10px 16px",
-    margin: "10px 10px 10px 0",
-    cursor: "pointer",
-  },
-  deleteButton: {
-    padding: "10px 16px",
-    margin: "10px",
-    backgroundColor: "#dc3545",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-  error: {
-    color: "red",
-    marginTop: "20px",
-  },
-};
 
 export default CompanyJobs;

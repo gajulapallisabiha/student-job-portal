@@ -16,6 +16,7 @@ const jobRoutes = require("./routes/job");
 const applicationRoutes = require("./routes/application");
 const profileRoutes = require("./routes/profileRoutes");
 const resumeRoutes = require("./routes/resumeRoutes");
+const interviewRoutes = require("./routes/interviewRoutes");
 
 // Create Express app
 const app = express();
@@ -41,6 +42,7 @@ app.use(
   })
 );
 
+// Middleware
 app.use(express.json());
 
 // Serve uploaded resumes
@@ -54,14 +56,27 @@ app.get("/", (req, res) => {
   });
 });
 
-// API routes
+// ========================================
+// API ROUTES
+// ========================================
+
 app.use("/api/auth", authRoutes);
+
 app.use("/api/jobs", jobRoutes);
+
 app.use("/api/applications", applicationRoutes);
+
 app.use("/api/profile", profileRoutes);
+
 app.use("/api/resume", resumeRoutes);
 
-// 404 route
+// INTERVIEW SCHEDULING ROUTES
+app.use("/api/interviews", interviewRoutes);
+
+// ========================================
+// 404 ROUTE
+// ========================================
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -70,7 +85,10 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// ========================================
+// ERROR HANDLER
+// ========================================
+
 app.use((err, req, res, next) => {
   console.error("Server Error:", err.message);
 
@@ -82,12 +100,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-// MongoDB connection
+// ========================================
+// MONGODB CONNECTION
+// ========================================
+
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-  console.error("ERROR: MONGO_URI is missing from environment variables");
+  console.error(
+    "ERROR: MONGO_URI is missing from environment variables"
+  );
   process.exit(1);
 }
 
@@ -99,6 +122,7 @@ mongoose
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
+      console.log("Interview scheduling routes registered");
     });
   })
   .catch((error) => {

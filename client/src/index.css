@@ -1,111 +1,362 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* =========================================
+   STUDENT JOB PORTAL - GLOBAL THEME
+   CHARCOAL GREY + DARK PINK
+========================================= */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color-scheme: dark;
+  font-family: 'DM Sans', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* PINK COLORS */
+  --primary: #e85a9b;
+  --primary-dark: #c43d7e;
+  --secondary: #f5a2c5;
+  --accent: #df4b91;
+
+  /* STATUS COLORS */
+  --success: #65d69a;
+  --danger: #ff718b;
+  --warning: #ffd166;
+
+  /* BACKGROUND COLORS */
+  --page-bg: #252329;
+  --surface: #322b35;
+  --surface-secondary: #3a303b;
+  --surface-hover: #493344;
+
+  /* TEXT COLORS */
+  --text-primary: #fff5fa;
+  --text-secondary: #d8c3d0;
+
+  /* BORDERS AND SHADOWS */
+  --border-color: #694b60;
+  --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.22);
+  --hover-shadow: 0 12px 30px rgba(232, 90, 155, 0.14);
+
+  /* GRADIENTS */
+  --gradient-primary: linear-gradient(135deg, #c43d7e, #e85a9b);
+  --gradient-accent: linear-gradient(135deg, #a83269, #df4b91, #f5a2c5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* =========================================
+   RESET
+========================================= */
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      ellipse at 10% 10%,
+      rgba(190, 24, 93, 0.10),
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 90% 30%,
+      rgba(236, 72, 153, 0.07),
+      transparent 40%
+    ),
+    linear-gradient(
+      135deg,
+      #252329 0%,
+      #29232d 50%,
+      #32232e 100%
+    );
+
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
 }
+
+/* =========================================
+   ROOT
+========================================= */
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  background: transparent;
 }
+
+/* =========================================
+   HEADINGS AND TEXT
+========================================= */
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
 p {
-  margin: 0;
+  color: var(--text-secondary);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
+a {
+  color: var(--secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #ffc0dc;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.primary-button,
+.primary-button {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 22px;
+  background: var(--gradient-primary);
+  color: #ffffff;
+  font-weight: 700;
+  transition: all 0.25s ease;
+}
+
+button.primary-button:hover,
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hover-shadow);
+}
+
+.secondary-button {
+  background: #3a303b;
+  color: #ffc0dc;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 11px 20px;
+  font-weight: 700;
+  transition: all 0.25s ease;
+}
+
+.secondary-button:hover {
+  background: #493344;
+  border-color: var(--primary);
+}
+
+/* =========================================
+   INPUTS AND FORMS
+========================================= */
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: var(--text-primary);
+}
+
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  width: 100%;
+  background: #39303a;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 15px;
+  outline: none;
+  color: #fff5fa;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(232, 90, 155, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #d8c3d0;
+  opacity: 0.85;
+}
+
+select option {
+  background: #39303a;
+  color: #fff5fa;
+}
+
+/* =========================================
+   CARDS
+========================================= */
+
+.surface-card,
+.portal-card {
+  background: rgba(50, 43, 53, 0.96);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.25s ease;
+}
+
+.surface-card:hover,
+.portal-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--hover-shadow);
+}
+
+/* =========================================
+   SECTIONS
+========================================= */
+
+.section-background {
+  background: rgba(58, 48, 59, 0.94);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 28px;
+}
+
+/* =========================================
+   GRADIENT TEXT AND BACKGROUNDS
+========================================= */
+
+.gradient-text {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-background {
+  background: var(--gradient-primary);
+  color: #ffffff;
+}
+
+/* =========================================
+   BADGES
+========================================= */
+
+.portal-badge {
   display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 30px;
+  background: rgba(232, 90, 155, 0.16);
+  color: #ffc0dc;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(232, 90, 155, 0.28);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* =========================================
+   TABLES
+========================================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-primary);
+}
+
+th,
+td {
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+th {
+  background: #3a303b;
+  color: #ffc0dc;
+  font-weight: 700;
+}
+
+td {
+  color: var(--text-secondary);
+}
+
+tr:hover td {
+  background: rgba(232, 90, 155, 0.05);
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #252329;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #985477;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e85a9b;
+}
+
+/* =========================================
+   SELECTION
+========================================= */
+
+::selection {
+  background: rgba(232, 90, 155, 0.35);
+  color: #ffffff;
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .surface-card,
+  .portal-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .section-background {
+    padding: 18px;
+  }
 }

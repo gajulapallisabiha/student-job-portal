@@ -8,6 +8,9 @@ const {
   getMyCompanyJobs,
   updateJob,
   deleteJob,
+  getSavedJobs,
+  saveJob,
+  removeSavedJob,
 } = require("../controllers/jobController");
 
 const protect = require("../middleware/authMiddleware");
@@ -15,42 +18,19 @@ const authorize = require("../middleware/roleMiddleware");
 
 const router = express.Router();
 
-// Get all jobs (available to everyone)
+// STUDENT - SAVED JOBS
+router.get("/saved", protect, authorize("STUDENT"), getSavedJobs);
+router.post("/:id/save", protect, authorize("STUDENT"), saveJob);
+router.delete("/:id/save", protect, authorize("STUDENT"), removeSavedJob);
+
+// COMPANY - JOB MANAGEMENT
+router.get("/my-jobs", protect, authorize("COMPANY"), getMyCompanyJobs);
+router.post("/", protect, authorize("COMPANY"), createJob);
+router.put("/:id", protect, authorize("COMPANY"), updateJob);
+router.delete("/:id", protect, authorize("COMPANY"), deleteJob);
+
+// PUBLIC - JOB LISTING
 router.get("/", getJobs);
-
-// Get jobs posted by logged-in company
-router.get(
-  "/my-jobs",
-  protect,
-  authorize("COMPANY"),
-  getMyCompanyJobs
-);
-
-// Get single job
 router.get("/:id", getJobById);
-
-// Post a job
-router.post(
-  "/",
-  protect,
-  authorize("COMPANY"),
-  createJob
-);
-
-// Update a job
-router.put(
-  "/:id",
-  protect,
-  authorize("COMPANY"),
-  updateJob
-);
-
-// Delete a job
-router.delete(
-  "/:id",
-  protect,
-  authorize("COMPANY"),
-  deleteJob
-);
 
 module.exports = router;

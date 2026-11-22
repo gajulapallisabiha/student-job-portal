@@ -9,18 +9,12 @@ const User = require("../models/User");
 // ========================================
 
 const companyOwnsJob = (job, company) => {
-  if (!job || !company) {
-    return false;
-  }
+  if (!job || !company) return false;
 
-  // Prefer company ID verification
   if (job.companyId) {
-    return (
-      job.companyId.toString() === company._id.toString()
-    );
+    return String(job.companyId) === String(company._id);
   }
 
-  // Fallback for older jobs without companyId
   return (
     String(job.company || "").trim().toLowerCase() ===
     String(company.name || "").trim().toLowerCase()
@@ -35,7 +29,6 @@ const applyForJob = async (req, res) => {
   try {
     const { jobId, coverLetter } = req.body;
 
-    // Validate Job ID
     if (!jobId || !mongoose.Types.ObjectId.isValid(jobId)) {
       return res.status(400).json({
         success: false,
@@ -43,7 +36,6 @@ const applyForJob = async (req, res) => {
       });
     }
 
-    // Validate Cover Letter
     if (!coverLetter || !coverLetter.trim()) {
       return res.status(400).json({
         success: false,
@@ -51,7 +43,6 @@ const applyForJob = async (req, res) => {
       });
     }
 
-    // Validate Resume
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -59,7 +50,6 @@ const applyForJob = async (req, res) => {
       });
     }
 
-    // Check whether job exists
     const job = await Job.findById(jobId);
 
     if (!job) {
@@ -69,7 +59,6 @@ const applyForJob = async (req, res) => {
       });
     }
 
-    // Check duplicate application
     const existingApplication = await Application.findOne({
       job: jobId,
       student: req.user.id,
@@ -82,10 +71,8 @@ const applyForJob = async (req, res) => {
       });
     }
 
-    // Save resume URL
     const resumeUrl = `/uploads/${req.file.filename}`;
 
-    // Create application
     const application = await Application.create({
       job: jobId,
       student: req.user.id,
@@ -96,6 +83,7 @@ const applyForJob = async (req, res) => {
         {
           status: "Applied",
           changedBy: req.user.id,
+          changedAt: new Date(),
         },
       ],
     });
@@ -105,7 +93,6 @@ const applyForJob = async (req, res) => {
       message: "Application submitted successfully",
       application,
     });
-
   } catch (error) {
     console.error("Apply job error:", error);
 
@@ -133,6 +120,7 @@ const getMyApplications = async (req, res) => {
       student: req.user.id,
     })
       .populate("job", "title company location type salary")
+      .populate("statusHistory.changedBy", "name role")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -140,7 +128,6 @@ const getMyApplications = async (req, res) => {
       count: applications.length,
       applications,
     });
-
   } catch (error) {
     console.error("Get my applications error:", error);
 
@@ -159,7 +146,6 @@ const getApplicationsForJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    // Validate Job ID
     if (!mongoose.Types.ObjectId.isValid(jobId)) {
       return res.status(400).json({
         success: false,
@@ -167,7 +153,6 @@ const getApplicationsForJob = async (req, res) => {
       });
     }
 
-    // Find job
     const job = await Job.findById(jobId);
 
     if (!job) {
@@ -177,10 +162,8 @@ const getApplicationsForJob = async (req, res) => {
       });
     }
 
-    // Find logged-in company
     const company = await User.findById(req.user.id);
 
-    // Verify ownership
     if (!companyOwnsJob(job, company)) {
       return res.status(403).json({
         success: false,
@@ -188,12 +171,12 @@ const getApplicationsForJob = async (req, res) => {
       });
     }
 
-    // Get applicants
     const applications = await Application.find({
       job: jobId,
     })
       .populate("student", "name email")
       .populate("job", "title company companyId")
+      .populate("statusHistory.changedBy", "name role")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -201,7 +184,6 @@ const getApplicationsForJob = async (req, res) => {
       count: applications.length,
       applications,
     });
-
   } catch (error) {
     console.error("Get job applications error:", error);
 
@@ -234,7 +216,6 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Validate Application ID
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({
         success: false,
@@ -242,7 +223,6 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Find application and associated job
     const application = await Application.findById(
       req.params.id
     ).populate("job");
@@ -254,10 +234,8 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Find logged-in company
     const company = await User.findById(req.user.id);
 
-    // Verify job ownership
     if (!companyOwnsJob(application.job, company)) {
       return res.status(403).json({
         success: false,
@@ -265,9 +243,19 @@ const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    // Update status
+    // Prevent duplicate timeline entries
+    if (application.status === status) {
+      return res.status(200).json({
+        success: true,
+        message: "Application already has this status",
+        application,
+      });
+    }
+
+    // Update current status
     application.status = status;
 
+    // Record timeline entry
     application.statusHistory.push({
       status,
       changedBy: req.user.id,
@@ -276,12 +264,18 @@ const updateApplicationStatus = async (req, res) => {
 
     await application.save();
 
+    const updatedApplication = await Application.findById(
+      application._id
+    )
+      .populate("student", "name email")
+      .populate("job", "title company")
+      .populate("statusHistory.changedBy", "name role");
+
     return res.status(200).json({
       success: true,
       message: `Application status updated to ${status}`,
-      application,
+      application: updatedApplication,
     });
-
   } catch (error) {
     console.error("Update application status error:", error);
 

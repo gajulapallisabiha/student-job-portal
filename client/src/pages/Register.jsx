@@ -1,3 +1,4 @@
+
 import "./Register.css";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -34,7 +35,11 @@ function Register() {
     e.preventDefault();
     setError("");
 
-    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.password.trim()
+    ) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -93,104 +98,190 @@ function Register() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>Create Account</h1>
+    <div className="register-page">
+      <div className="register-layout">
 
-        <p className="auth-subtitle">
-          Join the Student Job Portal
-        </p>
-
-        {error && <div className="error-message">{error}</div>}
-
-        <form onSubmit={handleRegister}>
-          <div className="form-group">
-            <label>Full Name *</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-              required
-            />
+        {/* LEFT SIDE */}
+        <div className="register-welcome">
+          <div className="register-brand">
+            <span className="register-brand-icon">✦</span>
+            <span>JobPortal</span>
           </div>
 
-          <div className="form-group">
-            <label>Email *</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
+          <div className="register-welcome-content">
+            <span className="register-eyebrow">
+              START YOUR JOURNEY
+            </span>
+
+            <h1>
+              Your next
+              <span> opportunity </span>
+              starts here.
+            </h1>
+
+            <p>
+              Create your account and connect with opportunities,
+              companies, and talented people.
+            </p>
+
+            <div className="register-benefits">
+              <div className="register-benefit">
+                <span className="benefit-symbol">01</span>
+                <div>
+                  <h3>Discover Opportunities</h3>
+                  <p>Explore jobs and internships that match your goals.</p>
+                </div>
+              </div>
+
+              <div className="register-benefit">
+                <span className="benefit-symbol">02</span>
+                <div>
+                  <h3>Build Your Career</h3>
+                  <p>Track applications and manage your career journey.</p>
+                </div>
+              </div>
+
+              <div className="register-benefit">
+                <span className="benefit-symbol">03</span>
+                <div>
+                  <h3>Connect with Talent</h3>
+                  <p>Companies can find and connect with skilled students.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Password *</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Minimum 6 characters"
-              required
-            />
-          </div>
+          <p className="register-footer">
+            Find opportunities. Create possibilities.
+          </p>
+        </div>
 
-          <div className="form-group">
-            <label>Register As *</label>
+        {/* RIGHT SIDE */}
+        <div className="register-form-section">
+          <div className="register-card">
 
-            <div className="role-buttons">
-              <button
-                type="button"
-                className={`role-button ${formData.role === "STUDENT" ? "active" : ""}`}
-                aria-pressed={formData.role === "STUDENT"}
-                onClick={() => handleRoleChange("STUDENT")}
-              >
-                Student
-              </button>
+            <div className="register-card-heading">
+              <span className="register-top-label">
+                JOIN OUR COMMUNITY
+              </span>
 
-              <button
-                type="button"
-                className={`role-button ${formData.role === "COMPANY" ? "active" : ""}`}
-                aria-pressed={formData.role === "COMPANY"}
-                onClick={() => handleRoleChange("COMPANY")}
-              >
-                Company
-              </button>
+              <h2>Create Account</h2>
+
+              <p>
+                Fill in your details to get started.
+              </p>
             </div>
 
-            <p className="selected-role">
-              Selected role: <strong>{formData.role}</strong>
-            </p>
+            {error && (
+              <div className="register-error">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleRegister}>
+              <div className="register-form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                  autoComplete="name"
+                  required
+                />
+              </div>
+
+              <div className="register-form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  autoComplete="email"
+                  required
+                />
+              </div>
+
+              <div className="register-form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a password (minimum 6 characters)"
+                  autoComplete="new-password"
+                  minLength="6"
+                  required
+                />
+              </div>
+
+              <div className="register-form-group">
+                <label>Register As</label>
+
+                <div className="register-role-options">
+                  <button
+                    type="button"
+                    className={`register-role-card ${
+                      formData.role === "STUDENT" ? "selected" : ""
+                    }`}
+                    aria-pressed={formData.role === "STUDENT"}
+                    onClick={() => handleRoleChange("STUDENT")}
+                  >
+                    <span className="register-role-letter">S</span>
+                    <span className="register-role-name">Student</span>
+                    <span className="register-role-description">
+                      Find jobs & internships
+                    </span>
+                    {formData.role === "STUDENT" && (
+                      <span className="register-role-check">✓</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`register-role-card ${
+                      formData.role === "COMPANY" ? "selected" : ""
+                    }`}
+                    aria-pressed={formData.role === "COMPANY"}
+                    onClick={() => handleRoleChange("COMPANY")}
+                  >
+                    <span className="register-role-letter">C</span>
+                    <span className="register-role-name">Company</span>
+                    <span className="register-role-description">
+                      Hire talented students
+                    </span>
+                    {formData.role === "COMPANY" && (
+                      <span className="register-role-check">✓</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="register-submit-button"
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create My Account"}
+                {!loading && <span>→</span>}
+              </button>
+            </form>
+
+            <div className="register-login-link">
+              Already have an account?{" "}
+              <Link to="/login">Login</Link>
+            </div>
+
+            <div className="register-secure-note">
+              Your account details are used to create your portal profile.
+            </div>
           </div>
+        </div>
 
-          <button
-            type="submit"
-            className="primary-button"
-            style={{ width: "100%" }}
-            disabled={loading}
-          >
-            {loading ? "Creating Account..." : "Register"}
-          </button>
-        </form>
-
-        <p style={{ textAlign: "center", marginTop: "25px", color: "#64748b" }}>
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            style={{
-              color: "#4f46e5",
-              fontWeight: "700",
-              textDecoration: "none",
-            }}
-          >
-            Login
-          </Link>
-        </p>
       </div>
     </div>
   );

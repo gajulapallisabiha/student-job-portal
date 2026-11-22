@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
+import "./PostJob.css";
 
 function PostJob() {
   const navigate = useNavigate();
@@ -48,9 +49,6 @@ function PostJob() {
       .filter(([, value]) => !value || !value.trim())
       .map(([name]) => name);
 
-    console.log("Current form data:", formData);
-    console.log("Missing fields:", missingFields);
-
     if (missingFields.length > 0) {
       setError(`Please fill in: ${missingFields.join(", ")}`);
       return;
@@ -85,8 +83,6 @@ function PostJob() {
 
       const data = await response.json();
 
-      console.log("POST JOB RESPONSE:", data);
-
       if (!response.ok) {
         setError(data.message || "Failed to post job.");
         return;
@@ -120,126 +116,214 @@ function PostJob() {
 
   return (
     <div className="post-job-page">
-      <div className="post-job-card">
-        <h1>Post a Job</h1>
+      <div className="post-job-container">
 
-        {error && <div className="error-message">{error}</div>}
-
-        {success && <div className="success-message">{success}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Job Title *</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Example: React Developer Intern"
-              required
-            />
+        <div className="post-job-heading">
+          <div>
+            <span className="post-job-eyebrow">COMPANY WORKSPACE</span>
+            <h1>Create a New Job Opening</h1>
+            <p>
+              Find the right talent for your team. Share an opportunity
+              and connect with talented candidates.
+            </p>
           </div>
 
-          <div className="form-group">
-            <label>Company *</label>
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              placeholder="Enter company name"
-              required
-            />
+          <Link to="/company-dashboard" className="post-job-back">
+            ← Dashboard
+          </Link>
+        </div>
+
+        <div className="post-job-layout">
+
+          <div className="post-job-card">
+            <div className="post-job-card-heading">
+              <div>
+                <span className="post-job-step">JOB DETAILS</span>
+                <h2>Opportunity Information</h2>
+                <p>Fill in the details below to publish your job.</p>
+              </div>
+              <div className="post-job-heading-icon">✦</div>
+            </div>
+
+            {error && (
+              <div className="post-job-alert error-message">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="post-job-alert success-message">
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div className="post-job-form-grid">
+
+                <div className="post-job-field full-width">
+                  <label>Job Title <span>*</span></label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="e.g. React Developer Intern"
+                    required
+                  />
+                </div>
+
+                <div className="post-job-field">
+                  <label>Company Name <span>*</span></label>
+                  <input
+                    type="text"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                    placeholder="Enter company name"
+                    required
+                  />
+                </div>
+
+                <div className="post-job-field">
+                  <label>Job Location <span>*</span></label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="e.g. Bengaluru / Remote"
+                    required
+                  />
+                </div>
+
+                <div className="post-job-field">
+                  <label>Salary / Stipend</label>
+                  <input
+                    type="text"
+                    name="salary"
+                    value={formData.salary}
+                    onChange={handleChange}
+                    placeholder="e.g. ₹20,000/month"
+                  />
+                </div>
+
+                <div className="post-job-field">
+                  <label>Employment Type <span>*</span></label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="Internship">Internship</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                  </select>
+                </div>
+
+                <div className="post-job-field full-width">
+                  <label>Job Description <span>*</span></label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Describe responsibilities, requirements, skills and what candidates can expect..."
+                    rows="6"
+                    required
+                  />
+                  <small>
+                    Provide clear information to help candidates understand
+                    the opportunity.
+                  </small>
+                </div>
+
+                <div className="post-job-field full-width">
+                  <label>Application Deadline <span>*</span></label>
+                  <input
+                    type="date"
+                    name="deadline"
+                    value={formData.deadline}
+                    onChange={handleChange}
+                    min={new Date().toISOString().split("T")[0]}
+                    required
+                  />
+                </div>
+
+              </div>
+
+              <div className="post-job-actions">
+                <button
+                  type="submit"
+                  className="post-job-submit"
+                  disabled={loading}
+                >
+                  {loading ? "Publishing..." : "Publish Job Opening"}
+                  {!loading && <span> →</span>}
+                </button>
+
+                <Link
+                  to="/company-dashboard"
+                  className="post-job-cancel"
+                >
+                  Cancel
+                </Link>
+              </div>
+            </form>
           </div>
 
-          <div className="form-group">
-            <label>Description *</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Describe the job, responsibilities and requirements"
-              required
-            />
-          </div>
+          <aside className="post-job-sidebar">
 
-          <div className="form-group">
-            <label>Location *</label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              placeholder="Example: Bengaluru / Remote"
-              required
-            />
-          </div>
+            <div className="post-job-preview-card">
+              <span className="preview-label">LIVE PREVIEW</span>
+              <div className="preview-icon">✦</div>
 
-          <div className="form-group">
-            <label>Salary / Stipend</label>
-            <input
-              type="text"
-              name="salary"
-              value={formData.salary}
-              onChange={handleChange}
-              placeholder="Example: ₹20,000/month"
-            />
-          </div>
+              <h3>{formData.title || "Your Job Title"}</h3>
 
-          <div className="form-group">
-            <label>Job Type *</label>
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              required
-            >
-              <option value="Internship">Internship</option>
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-            </select>
-          </div>
+              <p className="preview-company">
+                {formData.company || "Your Company"}
+              </p>
 
-          <div className="form-group">
-            <label>Application Deadline *</label>
-            <input
-              type="date"
-              name="deadline"
-              value={formData.deadline}
-              onChange={handleChange}
-              min={new Date().toISOString().split("T")[0]}
-              required
-            />
-          </div>
+              <div className="preview-tags">
+                <span>{formData.type}</span>
+                <span>{formData.location || "Location"}</span>
+              </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "15px",
-              marginTop: "25px",
-            }}
-          >
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={loading}
-            >
-              {loading ? "Posting..." : "Post Job"}
-            </button>
+              <div className="preview-divider" />
 
-            <Link
-              to="/company-dashboard"
-              className="secondary-button"
-              style={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              Cancel
-            </Link>
-          </div>
-        </form>
+              <div className="preview-detail">
+                <span>Salary / Stipend</span>
+                <strong>{formData.salary || "Not specified"}</strong>
+              </div>
+
+              <div className="preview-detail">
+                <span>Application Deadline</span>
+                <strong>{formData.deadline || "Not selected"}</strong>
+              </div>
+
+              <div className="preview-divider" />
+
+              <span className="preview-description-title">
+                About this opportunity
+              </span>
+
+              <p className="preview-description">
+                {formData.description
+                  ? formData.description
+                  : "Your job description will appear here as you fill in the form."}
+              </p>
+            </div>
+
+            <div className="post-job-tip-card">
+              <div className="tip-icon">✧</div>
+              <h3>Make your listing stand out</h3>
+              <p>
+                A clear job title, detailed description and accurate
+                requirements help attract suitable candidates.
+              </p>
+            </div>
+
+          </aside>
+        </div>
       </div>
     </div>
   );

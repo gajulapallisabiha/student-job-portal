@@ -1,12 +1,13 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
+import "./Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("STUDENT");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,20 +25,17 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-            role,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          role,
+        }),
+      });
 
       const data = await response.json();
 
@@ -76,105 +74,174 @@ function Login() {
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h1>Student Job Portal</h1>
-        <h2>Login</h2>
+    <div className="login-page">
 
-        <form onSubmit={handleLogin}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            style={styles.input}
-          />
+      <div className="login-glow login-glow-one"></div>
+      <div className="login-glow login-glow-two"></div>
 
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            style={styles.input}
-          />
+      <div className="login-layout">
 
-          <label>Login As</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            style={styles.input}
-          >
-            <option value="STUDENT">Student</option>
-            <option value="COMPANY">Company</option>
-          </select>
+        {/* LEFT WELCOME SECTION */}
+        <div className="login-welcome">
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={styles.button}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+          <div className="login-brand">
+            <div className="login-brand-icon">✦</div>
+            <span>JobPortal</span>
+          </div>
 
-        {error && (
-          <p style={styles.error}>{error}</p>
-        )}
+          <div className="login-welcome-content">
+            <span className="login-eyebrow">
+              YOUR CAREER STARTS HERE
+            </span>
 
-        <p>
-          Don't have an account?{" "}
-          <Link to="/register">Register</Link>
-        </p>
+            <h1>
+              Unlock your
+              <span> next opportunity.</span>
+            </h1>
+
+            <p>
+              Connect with leading companies, discover exciting
+              opportunities and take the next step in your career
+              journey.
+            </p>
+
+            <div className="login-highlights">
+
+              <div className="login-highlight">
+                <span className="highlight-icon">01</span>
+                <div>
+                  <strong>Discover Opportunities</strong>
+                  <small>Explore internships and jobs.</small>
+                </div>
+              </div>
+
+              <div className="login-highlight">
+                <span className="highlight-icon">02</span>
+                <div>
+                  <strong>Track Your Progress</strong>
+                  <small>Stay updated on applications.</small>
+                </div>
+              </div>
+
+              <div className="login-highlight">
+                <span className="highlight-icon">03</span>
+                <div>
+                  <strong>Build Your Future</strong>
+                  <small>Connect with the right employers.</small>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div className="login-footer-text">
+            Building connections. Creating opportunities.
+          </div>
+        </div>
+
+        {/* RIGHT LOGIN CARD */}
+        <div className="login-form-section">
+
+          <div className="login-card">
+
+            <div className="login-card-top">
+              <span className="login-card-label">WELCOME BACK</span>
+              <div className="login-card-symbol">✦</div>
+            </div>
+
+            <h2>Sign in to your account</h2>
+
+            <p className="login-subtitle">
+              Enter your details to continue to JobPortal.
+            </p>
+
+            <form onSubmit={handleLogin}>
+
+              <label>Email Address</label>
+              <div className="login-input-wrap">
+                <span className="login-input-icon">✉</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+
+              <label>Password</label>
+              <div className="login-input-wrap">
+                <span className="login-input-icon">⌑</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+
+              <label>Continue as</label>
+
+              <div className="login-role-selector">
+
+                <button
+                  type="button"
+                  className={`login-role-option ${
+                    role === "STUDENT" ? "active" : ""
+                  }`}
+                  onClick={() => setRole("STUDENT")}
+                >
+                  <span className="role-symbol">S</span>
+                  <span>Student</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`login-role-option ${
+                    role === "COMPANY" ? "active" : ""
+                  }`}
+                  onClick={() => setRole("COMPANY")}
+                >
+                  <span className="role-symbol">C</span>
+                  <span>Company</span>
+                </button>
+
+              </div>
+
+              {error && (
+                <div className="login-error">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="login-submit"
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign In"}
+                {!loading && <span>→</span>}
+              </button>
+
+            </form>
+
+            <div className="login-register">
+              Don't have an account?
+              <Link to="/register"> Create Account</Link>
+            </div>
+
+            <div className="login-secure">
+              Secure access to your JobPortal account
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#f5f7fb",
-  },
-
-  card: {
-    width: "400px",
-    padding: "35px",
-    background: "white",
-    borderRadius: "12px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-  },
-
-  input: {
-    width: "100%",
-    padding: "11px",
-    marginTop: "6px",
-    marginBottom: "18px",
-    boxSizing: "border-box",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-  },
-
-  button: {
-    width: "100%",
-    padding: "12px",
-    border: "none",
-    borderRadius: "6px",
-    background: "#2563eb",
-    color: "white",
-    cursor: "pointer",
-    fontSize: "16px",
-  },
-
-  error: {
-    color: "red",
-    fontWeight: "bold",
-    marginTop: "15px",
-  },
-};
 
 export default Login;

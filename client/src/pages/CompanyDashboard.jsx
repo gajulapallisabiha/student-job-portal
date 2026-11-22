@@ -1,117 +1,143 @@
+
 import { Link, useNavigate } from "react-router-dom";
+import "./CompanyDashboard.css";
 
 function CompanyDashboard() {
   const navigate = useNavigate();
 
-  const user =
-    JSON.parse(
-      localStorage.getItem("user")
-    ) || {};
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     navigate("/login");
   };
 
   return (
-    <div style={styles.page}>
+    <div className="company-dashboard">
+      <div className="company-dashboard-container">
 
-      <div style={styles.container}>
+        {/* Welcome Section */}
+        <section className="company-welcome">
+          <div className="company-welcome-content">
+            <span className="company-eyebrow">
+              COMPANY WORKSPACE
+            </span>
 
-        <h1>Company Dashboard</h1>
+            <h1>
+              Welcome back, <span>{user.name || "Company"}</span>
+            </h1>
 
-        <p>
-          Welcome,
-          {" "}
-          <strong>
-            {user.name || "Company"}
-          </strong>
-        </p>
+            <p>
+              Manage your job opportunities, discover talented candidates
+              and organize your recruitment activities from one place.
+            </p>
 
-        <hr />
+            <Link to="/post-job" className="company-primary-btn">
+              + Post a New Job
+            </Link>
+          </div>
 
-        <h2>Company Actions</h2>
+          <div className="company-welcome-decoration">
+            <div className="company-decoration-circle">
+              <span>✦</span>
+            </div>
+          </div>
+        </section>
 
-        <div style={styles.cards}>
+        {/* Dashboard Heading */}
+        <div className="company-section-heading">
+          <div>
+            <span>YOUR WORKSPACE</span>
+            <h2>Company Actions</h2>
+            <p>Everything you need to manage recruitment.</p>
+          </div>
+        </div>
 
-          <Link
-            to="/post-job"
-            style={styles.card}
-          >
+        {/* Action Cards */}
+        <div className="company-action-grid">
+
+          <Link to="/post-job" className="company-action-card">
+            <div className="company-action-top">
+              <div className="company-action-icon">＋</div>
+              <span className="company-action-arrow">↗</span>
+            </div>
+
+            <span className="company-card-label">CREATE OPPORTUNITY</span>
             <h3>Post a Job</h3>
             <p>
-              Create a new internship or
-              job opportunity.
+              Publish new internship and job openings to attract
+              talented students and professionals.
             </p>
+
+            <div className="company-card-footer">
+              <span>Create job opening</span>
+              <span>→</span>
+            </div>
           </Link>
 
-          <Link
-            to="/company-jobs"
-            style={styles.card}
-          >
+          <Link to="/company-jobs" className="company-action-card">
+            <div className="company-action-top">
+              <div className="company-action-icon">▤</div>
+              <span className="company-action-arrow">↗</span>
+            </div>
+
+            <span className="company-card-label">MANAGE OPPORTUNITIES</span>
             <h3>My Posted Jobs</h3>
             <p>
-              View and manage your posted jobs.
+              View your published jobs, manage openings and
+              keep track of your recruitment activity.
             </p>
+
+            <div className="company-card-footer">
+              <span>Manage job listings</span>
+              <span>→</span>
+            </div>
+          </Link>
+
+          <Link to="/company-interviews" className="company-action-card">
+            <div className="company-action-top">
+              <div className="company-action-icon">◷</div>
+              <span className="company-action-arrow">↗</span>
+            </div>
+
+            <span className="company-card-label">CANDIDATE MANAGEMENT</span>
+            <h3>Interview Management</h3>
+            <p>
+              Schedule interviews, review upcoming meetings and
+              manage candidate interview updates.
+            </p>
+
+            <div className="company-card-footer">
+              <span>Manage interviews</span>
+              <span>→</span>
+            </div>
           </Link>
 
         </div>
 
-        <button
-          onClick={logout}
-          style={styles.logout}
-        >
-          Logout
-        </button>
+        {/* Bottom Section */}
+        <section className="company-dashboard-bottom">
+          <div>
+            <span className="company-bottom-label">RECRUITMENT HUB</span>
+            <h3>Build your team with the right talent.</h3>
+            <p>
+              Keep your job listings updated and stay organized
+              throughout your hiring process.
+            </p>
+          </div>
+
+          <button
+            className="company-logout-btn"
+            onClick={logout}
+          >
+            Logout
+          </button>
+        </section>
 
       </div>
-
     </div>
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#f5f7fb",
-    padding: "50px",
-  },
-
-  container: {
-    maxWidth: "900px",
-    margin: "auto",
-    background: "white",
-    padding: "35px",
-    borderRadius: "12px",
-  },
-
-  cards: {
-    display: "flex",
-    gap: "20px",
-    flexWrap: "wrap",
-  },
-
-  card: {
-    width: "250px",
-    padding: "25px",
-    border: "1px solid #ddd",
-    borderRadius: "10px",
-    textDecoration: "none",
-    color: "#222",
-  },
-
-  logout: {
-    marginTop: "30px",
-    padding: "12px 25px",
-    border: "none",
-    borderRadius: "6px",
-    background: "#dc2626",
-    color: "white",
-    cursor: "pointer",
-  },
-};
-
 export default CompanyDashboard;
-

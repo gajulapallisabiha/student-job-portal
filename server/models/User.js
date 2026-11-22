@@ -29,7 +29,6 @@ const userSchema = new mongoose.Schema(
       default: "STUDENT",
     },
 
-    // NEW: Student profile information
     phone: {
       type: String,
       default: "",
@@ -55,7 +54,13 @@ const userSchema = new mongoose.Schema(
       default: [],
     },
 
-    // NEW: Resume information
+    savedJobs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job",
+      },
+    ],
+
     resumeUrl: {
       type: String,
       default: "",

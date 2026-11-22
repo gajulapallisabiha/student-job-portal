@@ -269,6 +269,121 @@ const deleteJob = async (req, res) => {
   }
 };
 
+// GET SAVED JOBS
+const getSavedJobs = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate("savedJobs");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Remove deleted jobs from the saved list
+    const validJobs = user.savedJobs.filter(Boolean);
+
+    res.status(200).json({
+      success: true,
+      count: validJobs.length,
+      savedJobs: validJobs,
+    });
+  } catch (error) {
+    console.error("Get saved jobs error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// SAVE JOB
+const saveJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
+    const job = await Job.findById(id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $addToSet: { savedJobs: id } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Job saved successfully",
+    });
+  } catch (error) {
+    console.error("Save job error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// REMOVE SAVED JOB
+const removeSavedJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $pull: { savedJobs: id } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Job removed from saved jobs",
+    });
+  } catch (error) {
+    console.error("Remove saved job error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getJobs,
   getJobById,
@@ -276,4 +391,7 @@ module.exports = {
   getMyCompanyJobs,
   updateJob,
   deleteJob,
+  getSavedJobs,
+  saveJob,
+  removeSavedJob,
 };

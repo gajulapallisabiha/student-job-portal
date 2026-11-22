@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import API_URL, { API_BASE_URL } from "../api";
+import "./CompanyApplications.css";
 
 const statusOptions = [
   "Under Review",
@@ -17,47 +19,59 @@ function CompanyApplications() {
   const [message, setMessage] = useState("");
   const [updatingId, setUpdatingId] = useState(null);
 
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  const [scheduleFor, setScheduleFor] = useState(null);
+  const [scheduleLoadingId, setScheduleLoadingId] = useState(null);
+  const [scheduleMessage, setScheduleMessage] = useState("");
+  const [scheduleError, setScheduleError] = useState("");
 
-        if (!token) {
-          setMessage("Please login first.");
-          setLoading(false);
-          return;
-        }
+  const [interviewData, setInterviewData] = useState({
+    interviewDate: "",
+    interviewMode: "Online",
+    meetingLink: "",
+    location: "",
+    instructions: "",
+  });
 
-        const response = await fetch(
-          `${API_URL}/applications/job/${jobId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+  const loadApplications = async (showLoader = true) => {
+    try {
+      if (showLoader) setLoading(true);
 
-        const data = await response.json();
+      const token = localStorage.getItem("token");
 
-        if (!response.ok) {
-          throw new Error(
-            data.message || "Failed to load applications"
-          );
-        }
-
-        setApplications(data.applications || []);
-      } catch (error) {
-        console.error(error);
-        setMessage(error.message);
-      } finally {
-        setLoading(false);
+      if (!token) {
+        setMessage("Please login first.");
+        return;
       }
-    };
 
-    fetchApplications();
+      const response = await fetch(
+        `${API_URL}/applications/job/${jobId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to load applications");
+      }
+
+      setApplications(data.applications || []);
+      setMessage("");
+    } catch (error) {
+      console.error(error);
+      setMessage(error.message);
+    } finally {
+      if (showLoader) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadApplications();
   }, [jobId]);
 
-  // Update application status
   const updateStatus = async (applicationId, status) => {
     const token = localStorage.getItem("token");
 
@@ -83,13 +97,17 @@ function CompanyApplications() {
         return;
       }
 
-      setApplications((previous) =>
-        previous.map((application) =>
-          application._id === applicationId
-            ? data.application
-            : application
-        )
-      );
+      if (data.application) {
+        setApplications((previous) =>
+          previous.map((application) =>
+            application._id === applicationId
+              ? data.application
+              : application
+          )
+        );
+      } else {
+        await loadApplications(false);
+      }
 
       alert(`Application updated to ${status}`);
     } catch (error) {
@@ -100,261 +118,489 @@ function CompanyApplications() {
     }
   };
 
-  const getStatusColor = (status) => {
+  const openScheduleForm = (applicationId) => {
+    setScheduleFor(applicationId);
+    setScheduleMessage("");
+    setScheduleError("");
+
+    setInterviewData({
+      interviewDate: "",
+      interviewMode: "Online",
+      meetingLink: "",
+      location: "",
+      instructions: "",
+    });
+  };
+
+  const handleInterviewChange = (e) => {
+    const { name, value } = e.target;
+
+    setInterviewData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const scheduleInterview = async (e, applicationId) => {
+    e.preventDefault();
+
+    setScheduleError("");
+    setScheduleMessage("");
+
+    if (new Date(interviewData.interviewDate) <= new Date()) {
+      setScheduleError("Please select a future interview date and time.");
+      return;
+    }
+
+    if (
+      interviewData.interviewMode === "Online" &&
+      !interviewData.meetingLink.trim()
+    ) {
+      setScheduleError("Please provide an online meeting link.");
+      return;
+    }
+
+    if (
+      interviewData.interviewMode === "Offline" &&
+      !interviewData.location.trim()
+    ) {
+      setScheduleError("Please provide the interview location.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setScheduleError("Please login again.");
+      return;
+    }
+
+    try {
+      setScheduleLoadingId(applicationId);
+
+      const response = await fetch(
+        `${API_URL}/interviews/schedule/${applicationId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            interviewDate: interviewData.interviewDate,
+            interviewMode: interviewData.interviewMode,
+            meetingLink: interviewData.meetingLink.trim(),
+            location: interviewData.location.trim(),
+            instructions: interviewData.instructions.trim(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setScheduleError(
+          data.message || "Failed to schedule interview."
+        );
+        return;
+      }
+
+      setScheduleMessage("Interview scheduled successfully!");
+      setScheduleFor(null);
+
+      await loadApplications(false);
+    } catch (error) {
+      console.error("SCHEDULE INTERVIEW ERROR:", error);
+      setScheduleError("Unable to connect to the server.");
+    } finally {
+      setScheduleLoadingId(null);
+    }
+  };
+
+  const getStatusClass = (status) => {
     switch (status) {
       case "Selected":
-        return "#15803d";
+        return "app-status-selected";
       case "Rejected":
-        return "#dc2626";
+        return "app-status-rejected";
       case "Shortlisted":
-        return "#7c3aed";
+        return "app-status-shortlisted";
       case "Under Review":
-        return "#d97706";
+        return "app-status-review";
       default:
-        return "#2563eb";
+        return "app-status-applied";
     }
+  };
+
+  const getLocalDateTime = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return date.toISOString().slice(0, 16);
   };
 
   if (loading) {
     return (
-      <div style={styles.page}>
-        <h1>Job Applicants</h1>
-        <p>Loading applications...</p>
+      <div className="company-applications-page">
+        <div className="applications-loading">
+          <div className="applications-loader"></div>
+          <h2>Loading applicants...</h2>
+          <p>Please wait while we fetch the applications.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
-        <h1>Job Applicants</h1>
+    <div className="company-applications-page">
+      <div className="company-applications-container">
 
-        <Link to="/company-jobs" style={styles.backLink}>
-          ← Back to My Posted Jobs
-        </Link>
+        <div className="applications-header">
+          <div>
+            <span className="applications-eyebrow">
+              RECRUITMENT WORKSPACE
+            </span>
+            <h1>Job Applicants</h1>
+            <p>Review candidates and manage your hiring process.</p>
+          </div>
+
+          <Link to="/company-jobs" className="applications-back-link">
+            ← Back to My Posted Jobs
+          </Link>
+        </div>
+
+        <div className="applicant-summary">
+          <div className="applicant-summary-card">
+            <span>Total Applications</span>
+            <strong>{applications.length}</strong>
+          </div>
+
+          <div className="applicant-summary-card">
+            <span>Shortlisted</span>
+            <strong>
+              {applications.filter((a) => a.status === "Shortlisted").length}
+            </strong>
+          </div>
+
+          <div className="applicant-summary-card">
+            <span>Selected</span>
+            <strong>
+              {applications.filter((a) => a.status === "Selected").length}
+            </strong>
+          </div>
+
+          <div className="applicant-summary-card">
+            <span>Under Review</span>
+            <strong>
+              {applications.filter((a) => a.status === "Under Review").length}
+            </strong>
+          </div>
+        </div>
 
         {message && (
-          <p style={styles.error}>{message}</p>
-        )}
-
-        {!message && applications.length === 0 && (
-          <div style={styles.empty}>
-            <h2>No Applications Yet</h2>
-            <p>No students have applied for this job yet.</p>
+          <div className="applications-alert applications-error">
+            {message}
           </div>
         )}
 
-        {applications.map((application) => {
-          const status = application.status || "Applied";
-          const history = application.statusHistory || [];
+        {scheduleMessage && (
+          <div className="applications-alert applications-success">
+            {scheduleMessage}
+          </div>
+        )}
 
-          const resumeUrl = application.resumeUrl
-            ? `${API_BASE_URL}${application.resumeUrl}`
-            : null;
+        {!message && applications.length === 0 && (
+          <div className="applications-empty">
+            <div className="applications-empty-icon">▤</div>
+            <h2>No Applications Yet</h2>
+            <p>
+              Students who apply for this job will appear here.
+            </p>
+            <Link to="/company-jobs">Back to My Posted Jobs</Link>
+          </div>
+        )}
 
-          return (
-            <div key={application._id} style={styles.card}>
-              <h2>
-                {application.student?.name || "Student Application"}
-              </h2>
+        <div className="applicants-list">
+          {applications.map((application, index) => {
+            const status = application.status || "Applied";
+            const history = application.statusHistory || [];
 
-              <p>
-                <strong>Email:</strong>{" "}
-                {application.student?.email || "Not available"}
-              </p>
+            const resumeUrl = application.resumeUrl
+              ? `${API_BASE_URL}${application.resumeUrl}`
+              : null;
 
-              <h3>Student Resume</h3>
+            const studentName =
+              application.student?.name || "Student Application";
 
-              {resumeUrl ? (
-                <a
-                  href={resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={styles.resumeButton}
-                >
-                  📄 View / Download Resume
-                </a>
-              ) : (
-                <p style={{ color: "#dc2626" }}>
-                  Resume not available for this application.
-                </p>
-              )}
+            const interviews = application.interviews || [];
 
-              <p style={{ marginTop: "20px" }}>
-                <strong>Cover Letter:</strong>
-              </p>
+            return (
+              <div className="applicant-card" key={application._id}>
+                <div className="applicant-card-header">
+                  <div className="applicant-identity">
+                    <div className="applicant-avatar">
+                      {studentName.charAt(0).toUpperCase()}
+                    </div>
 
-              <p style={styles.coverLetter}>
-                {application.coverLetter || "No cover letter"}
-              </p>
+                    <div>
+                      <span className="applicant-number">
+                        APPLICANT {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <h2>{studentName}</h2>
+                      <p>{application.student?.email || "Email not available"}</p>
+                    </div>
+                  </div>
 
-              <p>
-                <strong>Applied On:</strong>{" "}
-                {new Date(
-                  application.appliedDate || application.createdAt
-                ).toLocaleDateString()}
-              </p>
-
-              <p>
-                <strong>Current Status:</strong>{" "}
-                <span
-                  style={{
-                    color: getStatusColor(status),
-                    fontWeight: "bold",
-                  }}
-                >
-                  {status}
-                </span>
-              </p>
-
-              <h3>Application History</h3>
-
-              {history.length === 0 ? (
-                <p>No status history available.</p>
-              ) : (
-                <div style={styles.history}>
-                  {history.map((item, index) => (
-                    <p key={index} style={styles.historyItem}>
-                      <strong
-                        style={{
-                          color: getStatusColor(item.status),
-                        }}
-                      >
-                        {item.status}
-                      </strong>
-                      {" — "}
-                      {item.changedAt
-                        ? new Date(item.changedAt).toLocaleString()
-                        : "Date unavailable"}
-                    </p>
-                  ))}
+                  <span className={`app-status ${getStatusClass(status)}`}>
+                    {status}
+                  </span>
                 </div>
-              )}
 
-              <h3>Update Application Status</h3>
+                <div className="applicant-card-body">
+                  <div className="applicant-section">
+                    <h3>Candidate Resume</h3>
 
-              <div style={styles.actions}>
-                {statusOptions.map((option) => (
+                    {resumeUrl ? (
+                      <a
+                        href={resumeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="applicant-resume-link"
+                      >
+                        View / Download Resume <span>↗</span>
+                      </a>
+                    ) : (
+                      <p className="applicant-muted">
+                        Resume not available for this application.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="applicant-section">
+                    <h3>Cover Letter</h3>
+                    <div className="applicant-cover-letter">
+                      {application.coverLetter || "No cover letter provided."}
+                    </div>
+                  </div>
+
+                  <div className="applicant-meta">
+                    <span>Applied On</span>
+                    <strong>
+                      {application.appliedDate || application.createdAt
+                        ? new Date(
+                            application.appliedDate || application.createdAt
+                          ).toLocaleDateString()
+                        : "Date unavailable"}
+                    </strong>
+                  </div>
+
+                  <div className="applicant-section">
+                    <h3>Application History</h3>
+
+                    {history.length === 0 ? (
+                      <p className="applicant-muted">
+                        No status history available.
+                      </p>
+                    ) : (
+                      <div className="applicant-history">
+                        {history.map((item, historyIndex) => (
+                          <div className="applicant-history-item" key={historyIndex}>
+                            <span className="history-dot"></span>
+                            <div>
+                              <strong>{item.status}</strong>
+                              <p>
+                                {item.changedAt
+                                  ? new Date(item.changedAt).toLocaleString()
+                                  : "Date unavailable"}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {interviews.length > 0 && (
+                    <div className="applicant-section">
+                      <h3>Scheduled Interviews</h3>
+
+                      {interviews.map((interview, interviewIndex) => (
+                        <div
+                          className="scheduled-interview-item"
+                          key={interview._id || interviewIndex}
+                        >
+                          <strong>
+                            {interview.interviewMode || "Interview"} Interview
+                          </strong>
+                          <p>
+                            {interview.interviewDate
+                              ? new Date(interview.interviewDate).toLocaleString()
+                              : "Date not available"}
+                          </p>
+                          <span>
+                            {interview.status || "Scheduled"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="applicant-actions-section">
+                  <h3>Update Application Status</h3>
+
+                  <div className="applicant-status-actions">
+                    {statusOptions.map((option) => (
+                      <button
+                        key={option}
+                        disabled={
+                          updatingId === application._id ||
+                          status === option
+                        }
+                        onClick={() => updateStatus(application._id, option)}
+                        className={`applicant-status-btn ${getStatusClass(option)}`}
+                      >
+                        {updatingId === application._id
+                          ? "Updating..."
+                          : option}
+                      </button>
+                    ))}
+                  </div>
+
                   <button
-                    key={option}
+                    className="schedule-interview-btn"
+                    onClick={() => openScheduleForm(application._id)}
                     disabled={
-                      updatingId === application._id ||
-                      status === option
+                      status === "Rejected" ||
+                      scheduleLoadingId === application._id
                     }
-                    onClick={() =>
-                      updateStatus(application._id, option)
-                    }
-                    style={{
-                      ...styles.button,
-                      background: getStatusColor(option),
-                      opacity:
-                        updatingId === application._id ||
-                        status === option
-                          ? 0.5
-                          : 1,
-                    }}
                   >
-                    {updatingId === application._id
-                      ? "Updating..."
-                      : option}
+                    Schedule Interview
+                    <span>→</span>
                   </button>
-                ))}
+
+                  {scheduleFor === application._id && (
+                    <form
+                      className="interview-schedule-form"
+                      onSubmit={(e) =>
+                        scheduleInterview(e, application._id)
+                      }
+                    >
+                      <div className="interview-form-heading">
+                        <div>
+                          <span>INTERVIEW SETUP</span>
+                          <h3>Schedule an Interview</h3>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="close-interview-form"
+                          onClick={() => setScheduleFor(null)}
+                        >
+                          ×
+                        </button>
+                      </div>
+
+                      {scheduleError && (
+                        <div className="applications-alert applications-error">
+                          {scheduleError}
+                        </div>
+                      )}
+
+                      <div className="interview-form-grid">
+                        <div className="interview-form-field full-width">
+                          <label>Interview Date and Time *</label>
+                          <input
+                            type="datetime-local"
+                            name="interviewDate"
+                            value={interviewData.interviewDate}
+                            onChange={handleInterviewChange}
+                            min={getLocalDateTime()}
+                            required
+                          />
+                        </div>
+
+                        <div className="interview-form-field full-width">
+                          <label>Interview Mode *</label>
+                          <select
+                            name="interviewMode"
+                            value={interviewData.interviewMode}
+                            onChange={handleInterviewChange}
+                          >
+                            <option value="Online">Online</option>
+                            <option value="Offline">Offline</option>
+                          </select>
+                        </div>
+
+                        {interviewData.interviewMode === "Online" && (
+                          <div className="interview-form-field full-width">
+                            <label>Meeting Link *</label>
+                            <input
+                              type="url"
+                              name="meetingLink"
+                              value={interviewData.meetingLink}
+                              onChange={handleInterviewChange}
+                              placeholder="https://meet.google.com/..."
+                              required
+                            />
+                          </div>
+                        )}
+
+                        {interviewData.interviewMode === "Offline" && (
+                          <div className="interview-form-field full-width">
+                            <label>Interview Location *</label>
+                            <input
+                              type="text"
+                              name="location"
+                              value={interviewData.location}
+                              onChange={handleInterviewChange}
+                              placeholder="Enter office address"
+                              required
+                            />
+                          </div>
+                        )}
+
+                        <div className="interview-form-field full-width">
+                          <label>Additional Instructions</label>
+                          <textarea
+                            name="instructions"
+                            value={interviewData.instructions}
+                            onChange={handleInterviewChange}
+                            placeholder="Add interview instructions for the student..."
+                            rows="3"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="interview-form-actions">
+                        <button
+                          type="submit"
+                          className="confirm-interview-btn"
+                          disabled={scheduleLoadingId === application._id}
+                        >
+                          {scheduleLoadingId === application._id
+                            ? "Scheduling..."
+                            : "Confirm Interview"}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="cancel-interview-btn"
+                          onClick={() => setScheduleFor(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#f5f7fb",
-    padding: "40px 20px",
-  },
-
-  container: {
-    maxWidth: "900px",
-    margin: "0 auto",
-  },
-
-  backLink: {
-    display: "inline-block",
-    marginBottom: "20px",
-    color: "#2563eb",
-    textDecoration: "none",
-    fontWeight: "bold",
-  },
-
-  card: {
-    background: "white",
-    padding: "25px",
-    marginTop: "20px",
-    borderRadius: "10px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
-  },
-
-  resumeButton: {
-    display: "inline-block",
-    background: "#2563eb",
-    color: "white",
-    padding: "11px 18px",
-    borderRadius: "7px",
-    textDecoration: "none",
-    fontWeight: "bold",
-    marginTop: "5px",
-  },
-
-  coverLetter: {
-    background: "#f8fafc",
-    padding: "12px",
-    borderRadius: "6px",
-    whiteSpace: "pre-wrap",
-  },
-
-  history: {
-    borderLeft: "3px solid #e5e7eb",
-    paddingLeft: "15px",
-    marginBottom: "20px",
-  },
-
-  historyItem: {
-    marginBottom: "12px",
-    fontSize: "14px",
-  },
-
-  actions: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    marginTop: "15px",
-  },
-
-  button: {
-    border: "none",
-    padding: "10px 15px",
-    borderRadius: "6px",
-    color: "white",
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
-
-  empty: {
-    background: "white",
-    padding: "30px",
-    marginTop: "20px",
-    borderRadius: "10px",
-    textAlign: "center",
-  },
-
-  error: {
-    color: "#dc2626",
-    background: "#fee2e2",
-    padding: "15px",
-    borderRadius: "8px",
-  },
-};
 
 export default CompanyApplications;

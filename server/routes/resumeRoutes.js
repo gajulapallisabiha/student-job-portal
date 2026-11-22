@@ -9,9 +9,14 @@ const upload = require("../middleware/uploadMiddleware");
 
 const {
   uploadResume,
+  getResume,
+  deleteResume,
 } = require("../controllers/resumeController");
 
-// Student resume upload API
+// STUDENT - VIEW RESUME
+router.get("/", protect, authorize("STUDENT"), getResume);
+
+// STUDENT - UPLOAD OR REPLACE RESUME
 router.post(
   "/upload",
   protect,
@@ -19,5 +24,8 @@ router.post(
   upload.single("resume"),
   uploadResume
 );
+
+// STUDENT - DELETE RESUME
+router.delete("/", protect, authorize("STUDENT"), deleteResume);
 
 module.exports = router;

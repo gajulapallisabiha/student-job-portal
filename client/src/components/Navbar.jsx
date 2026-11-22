@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API_URL from "../api";
@@ -11,6 +12,7 @@ function Navbar() {
   const role = user.role?.toUpperCase();
 
   const [notifications, setNotifications] = useState([]);
+
   const [readIds, setReadIds] = useState(() => {
     try {
       return JSON.parse(
@@ -23,6 +25,7 @@ function Navbar() {
 
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // STUDENT NOTIFICATIONS
   useEffect(() => {
     if (!token || role !== "STUDENT") return;
 
@@ -93,6 +96,7 @@ function Navbar() {
       const updatedReadIds = [...new Set([...readIds, ...allIds])];
 
       setReadIds(updatedReadIds);
+
       localStorage.setItem(
         "readNotifications",
         JSON.stringify(updatedReadIds)
@@ -100,45 +104,90 @@ function Navbar() {
     }
   };
 
+  // LOGOUT
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("readNotifications");
+
     navigate("/login");
   };
 
   return (
     <nav className="navbar">
+      {/* LOGO */}
       <Link to="/jobs" className="navbar-logo">
+        <span className="navbar-logo-icon">✦</span>
         JobPortal
       </Link>
 
+      {/* NAVIGATION LINKS */}
       <div className="navbar-links">
+
+        {/* STUDENT LINKS */}
         {token && role === "STUDENT" && (
           <>
-            <Link to="/jobs">Jobs</Link>
-            <Link to="/my-applications">My Applications</Link>
+            <Link to="/student-dashboard">
+              Dashboard
+            </Link>
+
+            <Link to="/jobs">
+              Jobs
+            </Link>
+
+            <Link to="/saved-jobs">
+              Saved Jobs
+            </Link>
+
+            <Link to="/my-applications">
+              My Applications
+            </Link>
+
+            <Link to="/my-interviews">
+              My Interviews
+            </Link>
+
+            <Link to="/profile">
+              Profile
+            </Link>
           </>
         )}
 
+        {/* COMPANY LINKS */}
         {token && role === "COMPANY" && (
           <>
-            <Link to="/company-dashboard">Dashboard</Link>
-            <Link to="/post-job">Post Job</Link>
-            <Link to="/company-jobs">My Posted Jobs</Link>
+            <Link to="/company-dashboard">
+              Dashboard
+            </Link>
+
+            <Link to="/post-job">
+              Post Job
+            </Link>
+
+            <Link to="/company-jobs">
+              My Posted Jobs
+            </Link>
+
+            <Link to="/company-interviews">
+              Interview Management
+            </Link>
           </>
         )}
       </div>
 
+      {/* NAVBAR ACTIONS */}
       <div className="navbar-actions">
+
+        {/* STUDENT NOTIFICATIONS */}
         {token && role === "STUDENT" && (
           <div className="notification-wrapper">
             <button
               className="notification-bell"
               onClick={handleBellClick}
               aria-label="Notifications"
+              title="Notifications"
             >
-              🔔
+              <span aria-hidden="true">🔔</span>
 
               {unreadCount > 0 && (
                 <span className="notification-count">
@@ -152,7 +201,9 @@ function Navbar() {
                 <h3>Notifications</h3>
 
                 {notifications.length === 0 ? (
-                  <p>No notifications yet.</p>
+                  <p className="empty-notifications">
+                    No notifications yet.
+                  </p>
                 ) : (
                   notifications.slice(0, 10).map((item) => {
                     const isRead = readIds.includes(item.id);
@@ -165,6 +216,7 @@ function Navbar() {
                         key={item.id}
                       >
                         <strong>{item.status}</strong>
+
                         <p>{item.jobTitle}</p>
 
                         <small>
@@ -183,22 +235,30 @@ function Navbar() {
 
                 <Link
                   to="/my-applications"
+                  className="notification-view-all"
                   onClick={() => setShowNotifications(false)}
                 >
-                  View All Applications
+                  View All Applications →
                 </Link>
               </div>
             )}
           </div>
         )}
 
+        {/* LOGIN / LOGOUT */}
         {token ? (
-          <button className="logout-btn" onClick={handleLogout}>
+          <button
+            className="logout-btn"
+            onClick={handleLogout}
+          >
             Logout
           </button>
         ) : (
           <>
-            <Link to="/login">Login</Link>
+            <Link to="/login" className="login-btn">
+              Login
+            </Link>
+
             <Link to="/register" className="register-btn">
               Register
             </Link>
