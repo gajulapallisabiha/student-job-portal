@@ -17,8 +17,16 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password) {
+    const trimmedEmail = email.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail || !password.trim()) {
       setError("Please enter email and password.");
+      return;
+    }
+
+    if (!emailPattern.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -31,19 +39,16 @@ function Login() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email.trim(),
+          email: trimmedEmail,
           password,
           role,
         }),
       });
 
-      const data = await response.json();
-
-      console.log("LOGIN RESPONSE:", data);
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(data.message || "Invalid email or password");
-        setLoading(false);
+        setError(data.message || "Invalid email or password.");
         return;
       }
 
@@ -58,7 +63,7 @@ function Login() {
       const loggedUser = data.user;
 
       if (
-        loggedUser?.role === "COMPANY" ||
+        loggedUser?.role?.toUpperCase() === "COMPANY" ||
         role === "COMPANY"
       ) {
         navigate("/company-dashboard");
@@ -67,23 +72,20 @@ function Login() {
       }
     } catch (error) {
       console.error("LOGIN ERROR:", error);
-      setError("Unable to connect to server.");
+      setError("Unable to connect to server. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <div className="login-page">
-
       <div className="login-glow login-glow-one"></div>
       <div className="login-glow login-glow-two"></div>
 
       <div className="login-layout">
-
         {/* LEFT WELCOME SECTION */}
         <div className="login-welcome">
-
           <div className="login-brand">
             <div className="login-brand-icon">✦</div>
             <span>JobPortal</span>
@@ -106,7 +108,6 @@ function Login() {
             </p>
 
             <div className="login-highlights">
-
               <div className="login-highlight">
                 <span className="highlight-icon">01</span>
                 <div>
@@ -130,7 +131,6 @@ function Login() {
                   <small>Connect with the right employers.</small>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -141,9 +141,7 @@ function Login() {
 
         {/* RIGHT LOGIN CARD */}
         <div className="login-form-section">
-
           <div className="login-card">
-
             <div className="login-card-top">
               <span className="login-card-label">WELCOME BACK</span>
               <div className="login-card-symbol">✦</div>
@@ -156,7 +154,6 @@ function Login() {
             </p>
 
             <form onSubmit={handleLogin}>
-
               <label>Email Address</label>
               <div className="login-input-wrap">
                 <span className="login-input-icon">✉</span>
@@ -165,6 +162,7 @@ function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -177,6 +175,7 @@ function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   required
                 />
               </div>
@@ -184,7 +183,6 @@ function Login() {
               <label>Continue as</label>
 
               <div className="login-role-selector">
-
                 <button
                   type="button"
                   className={`login-role-option ${
@@ -206,11 +204,10 @@ function Login() {
                   <span className="role-symbol">C</span>
                   <span>Company</span>
                 </button>
-
               </div>
 
               {error && (
-                <div className="login-error">
+                <div className="login-error" role="alert">
                   {error}
                 </div>
               )}
@@ -223,7 +220,6 @@ function Login() {
                 {loading ? "Signing in..." : "Sign In"}
                 {!loading && <span>→</span>}
               </button>
-
             </form>
 
             <div className="login-register">
@@ -234,11 +230,8 @@ function Login() {
             <div className="login-secure">
               Secure access to your JobPortal account
             </div>
-
           </div>
-
         </div>
-
       </div>
     </div>
   );
